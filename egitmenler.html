@@ -20,15 +20,15 @@
     <section class="hero bg-navy-900 text-white">
       <div class="mx-auto max-w-6xl px-5 py-14 md:py-20">
         <h1 class="font-display text-4xl font-extrabold tracking-tight md:text-5xl">Eğitmenlerimiz</h1>
-        <p class="mt-4 max-w-2xl text-lg text-navy-100/90">İlini seç, istersen ders ya da üniversite adıyla ara. Beğendiğin eğitmene doğrudan WhatsApp'tan yaz.</p>
+        <p class="mt-4 max-w-2xl text-lg text-navy-100/90">Pilot illerimizden birini seç, istersen ders ya da üniversite adıyla ara. Beğendiğin eğitmene doğrudan WhatsApp'tan yaz.</p>
       </div>
     </section>
 
     <section class="mx-auto max-w-6xl px-5 py-12 md:py-16">
-      <div id="city-chips" class="flex flex-wrap gap-2" role="group" aria-label="Popüler iller"></div>
-      <div class="mt-5 grid gap-4 sm:grid-cols-2 sm:max-w-2xl">
-        <div><label for="city-select" class="label">Tüm iller</label><select id="city-select" class="field"></select></div>
-        <div><label for="search" class="label">Ders, üniversite veya isim</label><input id="search" type="search" placeholder="Örn. Matematik, ODTÜ" class="field" /></div>
+      <div id="city-chips" class="flex flex-wrap gap-2" role="group" aria-label="Pilot iller"></div>
+      <div class="mt-5 max-w-md">
+        <label for="search" class="label">Ders, üniversite veya isim</label>
+        <input id="search" type="search" placeholder="Örn. Matematik, ODTÜ" class="field" />
       </div>
 
       <h2 id="results-title" class="mt-12 font-display text-2xl font-extrabold text-navy-900"></h2>
@@ -37,36 +37,34 @@
   </main>
 
   <div id="site-footer"></div>
+  <script src="veri.js"></script>
   <script src="data.js"></script>
   <script src="layout.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
-    let city = ALL_CITIES.includes(params.get("il")) ? params.get("il") : "İstanbul";
+    let city = ILLER.includes(params.get("il")) ? params.get("il") : ILLER[0];
     let query = "";
 
     function render() {
-      const all = TUTORS[city] || [];
+      const all = tutorsByCity(city);
       const q = trLower(query.trim());
-      const list = q ? all.filter((t) => trLower([t[0], t[3], t[4], ...t[5]].join(" ")).includes(q)) : all;
-      $("results-title").textContent = all.length ? `${city} eğitmenleri (${list.length})` : city;
+      const list = q ? all.filter((t) => trLower([t.ad, t.universite, t.bolum, ...t.dersler].join(" ")).includes(q)) : all;
+      $("results-title").textContent = `${city} eğitmenleri (${list.length})`;
       $("tutor-grid").innerHTML = !all.length ? emptyState(city)
         : !list.length ? '<p class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">Aramana uygun eğitmen bulunamadı. Farklı bir ders veya üniversite adı dene.</p>'
-        : list.map((t) => tutorCard(t, city)).join("");
+        : list.map((t) => tutorCard(t)).join("");
     }
 
     function selectCity(c, animate = true) {
       city = c;
       document.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.city === c)));
-      $("city-select").value = c;
       history.replaceState(null, "", "?il=" + encodeURIComponent(c));
       render();
       if (animate) { const g = $("tutor-grid"); g.classList.remove("is-updating"); void g.offsetWidth; g.classList.add("is-updating"); }
     }
 
-    $("city-chips").innerHTML = POPULAR.map((c) => `<button type="button" class="chip" data-city="${c}" aria-pressed="false">${c}</button>`).join("");
+    $("city-chips").innerHTML = ILLER.map((c) => `<button type="button" class="chip" data-city="${c}" aria-pressed="false">${c}</button>`).join("");
     $("city-chips").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (b) selectCity(b.dataset.city); });
-    $("city-select").innerHTML = ALL_CITIES.map((c) => `<option>${c}</option>`).join("");
-    $("city-select").addEventListener("change", (e) => selectCity(e.target.value));
     $("search").addEventListener("input", (e) => { query = e.target.value; render(); });
     selectCity(city, false);
   </script>

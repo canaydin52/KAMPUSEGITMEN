@@ -1,41 +1,212 @@
-/* Kampüs Eğitmen – Tailwind'e ek özel stiller (tüm sayfalarda ortak) */
+/* =========================================================
+   Kampüs Eğitmen – ortak stiller (tüm sayfalarda kullanılır)
+   Not: HTML'e dokunulmadan, yalnızca bu dosyayla güzelleştirildi.
+   ========================================================= */
 
 html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 
-/* Lacivert bölümlerde ince ızgara dokusu */
+/* ---------- 1) Temel: hero, menü, alt bilgi ---------- */
+
+/* Lacivert bölümlerde ince ızgara + yumuşak mavi ışık */
 .hero {
   background-image:
+    radial-gradient(circle at 88% 0%, rgba(122,162,227,.28), transparent 46%),
+    radial-gradient(circle at 0% 100%, rgba(26,58,102,.55), transparent 50%),
     linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-  background-size: 44px 44px;
+  background-size: auto, auto, 44px 44px, 44px 44px;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.08);
 }
 .hero-card { transform: rotate(2deg); }
 
-/* Üst menü bağlantıları */
+#site-header header { box-shadow: 0 6px 24px -10px rgba(0,0,0,.55); }
+
 .nav-link { color: #dbe5f3; font-weight: 600; font-size: .875rem; padding: .35rem 0; border-bottom: 2px solid transparent; }
 .nav-link:hover { color: #fff; }
 .nav-link.is-active { color: #fff; border-bottom-color: #7aa2e3; }
+
+#site-footer > footer { border-top: 3px solid #1a3a66; background-image: linear-gradient(180deg, rgba(26,58,102,.35), transparent 120px); }
+
+/* ---------- 2) Kartlar: ince çerçeve + hafif gölge ---------- */
+
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl {
+  border: 1px solid #dbe3ee;
+  border-top: var(--card-top, 1px solid #dbe3ee);
+  box-shadow: 0 1px 2px rgba(10,27,51,.05), 0 12px 28px -16px rgba(10,27,51,.28);
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+
+/* Üstte lacivert vurgu çizgisi olan kartlar: eğitmen, adım ve "neden" kartları */
+article.bg-white.rounded-2xl,
+ol > li.bg-white.rounded-xl,
+section.bg-slate-100 .bg-white.rounded-xl { --card-top: 3px solid #1a3a66; }
+
+article.bg-white.rounded-2xl:hover,
+ol > li.bg-white.rounded-xl:hover {
+  transform: translateY(-3px);
+  border-color: #b9c8de;
+  box-shadow: 0 2px 4px rgba(10,27,51,.06), 0 20px 36px -18px rgba(10,27,51,.38);
+}
+
+/* Kartın tamamı tıklanabilir: isim bağlantısı kartı kaplar, WhatsApp butonu üstte kalır */
+.card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.card-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tutor-card { cursor: pointer; }
+.hero-card { transition: transform .2s ease; }
+.hero-card:hover { transform: rotate(0deg) translateY(-3px); }
+
+/* Boş durum kartı kesik çizgili kalır */
+.bg-white.border-dashed { border: 1px dashed #b9c8de; box-shadow: none; }
+
+/* Ana sayfadaki hero kartı kendi gölgesini korur */
+.hero-card.bg-white { border: 0; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
+
+/* Eğitmen fotoğrafı: ince halka */
+.avatar {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #b9c8de, 0 8px 16px -8px rgba(10,27,51,.45);
+}
+/* Uzmanlık etiketleri */
+article li.rounded-full { background: #f4f7fb; border: 1px solid #dbe3ee; }
+
+/* ---------- 3) Hakkımızda: Hikayemiz + istatistik rozetleri ---------- */
+
+/* Hikaye sütununu 2 sütunlu bir ızgaraya çevir: başlık, yazılar, sonra rozetler */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: .8rem;
+  row-gap: .9rem;
+  align-content: start;
+}
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > h2 { grid-column: 1 / -1; order: 0; }
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > h2::after {
+  content: ""; display: block; width: 3rem; height: 3px; margin-top: .65rem;
+  background: #1a3a66; border-radius: 2px;
+}
+/* Yazı bloğu ızgaranın parçası olsun, paragraflar tam genişlikte kalsın */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4 { display: contents; }
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4 > p { grid-column: 1 / -1; order: 1; margin: 0; }
+
+/* Üç rozet (metinleri aşağıdaki content satırlarından değiştirebilirsin) */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child::before,
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child::after,
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::before,
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::after {
+  order: 2;
+  display: flex;
+  align-items: center;
+  min-height: 3.4rem;
+  padding: .75rem .9rem .75rem 3.1rem;
+  border: 1px solid #dbe3ee;
+  border-radius: .9rem;
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: .95rem;
+  line-height: 1.2;
+  color: #0a1b33;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: .95rem center;
+  background-size: 1.4rem 1.4rem;
+  box-shadow: 0 1px 2px rgba(10,27,51,.05), 0 10px 22px -14px rgba(10,27,51,.3);
+}
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::before,
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::after { margin-top: .5rem; }
+
+/* 1) Üniversite ağı */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::before {
+  content: "Seçkin Üniversite Ağı";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 9 10-5 10 5-10 5z'/%3E%3Cpath d='M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5'/%3E%3C/svg%3E");
+}
+/* 2) Birebir rehberlik */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child > .space-y-4::after {
+  content: "Birebir Rehberlik";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3'/%3E%3Cpath d='M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6'/%3E%3Ccircle cx='17' cy='9' r='2'/%3E%3Cpath d='M17 14c2.2 0 4 1.8 4 4'/%3E%3C/svg%3E");
+}
+/* 3) Türkiye geneli (alt satırda tam genişlik) */
+section[class*="grid-cols-[1fr_1fr]"] > div:first-child::after {
+  grid-column: 1 / -1;
+  content: "6 Pilot İlde Hizmet";
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z'/%3E%3Ccircle cx='12' cy='9.5' r='2.5'/%3E%3C/svg%3E");
+}
+
+/* ---------- 4) Misyon ve vizyon: minimalist ikon vurguları ---------- */
+
+div.space-y-5 > .bg-white.rounded-xl { border-left: 4px solid #1a3a66; }
+div.space-y-5 > .bg-white.rounded-xl > h3 { display: flex; align-items: center; gap: .7rem; }
+div.space-y-5 > .bg-white.rounded-xl > h3::before {
+  content: "";
+  flex: none;
+  width: 2.3rem; height: 2.3rem;
+  border-radius: .7rem;
+  background-color: #e8eef8;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1.2rem 1.2rem;
+  box-shadow: inset 0 0 0 1px #d3dff0;
+}
+/* Misyon: hedef */
+div.space-y-5 > .bg-white.rounded-xl:nth-child(1) > h3::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='5'/%3E%3Ccircle cx='12' cy='12' r='1.2'/%3E%3C/svg%3E");
+}
+/* Vizyon: göz */
+div.space-y-5 > .bg-white.rounded-xl:nth-child(2) > h3::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+
+/* ---------- 5) Sayfa altındaki harekete geçirme (CTA) alanı ---------- */
+
+main > section.bg-navy-900:not(.hero) {
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 90% 120%, rgba(122,162,227,.35), transparent 50%),
+    radial-gradient(circle at 5% -20%, rgba(26,58,102,.8), transparent 55%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+}
+main > section.bg-navy-900:not(.hero) a {
+  box-shadow: 0 10px 24px -10px rgba(0,0,0,.6);
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+main > section.bg-navy-900:not(.hero) a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -12px rgba(0,0,0,.7);
+}
+
+/* ---------- 6) Butonlar, rozetler, form ---------- */
+
+/* WhatsApp butonları */
+.bg-wa { box-shadow: 0 8px 18px -8px rgba(37,211,102,.7); transition: transform .2s ease, box-shadow .2s ease, filter .2s ease; }
+.bg-wa:hover { transform: translateY(-1px); box-shadow: 0 12px 22px -8px rgba(37,211,102,.8); }
+
+/* Ana sayfa hızlı arama */
+#quick-search select { box-shadow: 0 10px 26px -12px rgba(0,0,0,.6); }
 
 /* İl seçici butonları */
 .chip {
   border: 1px solid #cbd5e1; background: #fff; color: #0a1b33;
   border-radius: 9999px; padding: .55rem 1.1rem; font-weight: 700;
-  transition: background-color .15s, color .15s, border-color .15s;
+  box-shadow: 0 1px 2px rgba(10,27,51,.06);
+  transition: background-color .15s, color .15s, border-color .15s, box-shadow .15s;
 }
-.chip:hover { border-color: #1a3a66; }
-.chip[aria-pressed="true"] { background: #0a1b33; border-color: #0a1b33; color: #fff; }
+.chip:hover { border-color: #1a3a66; box-shadow: 0 6px 14px -8px rgba(10,27,51,.4); }
+.chip[aria-pressed="true"] { background: #0a1b33; border-color: #0a1b33; color: #fff; box-shadow: 0 8px 16px -8px rgba(10,27,51,.6); }
 
 /* Form alanları */
 .field {
   width: 100%; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff;
   padding: .7rem .9rem; color: #0a1b33; font-weight: 500;
+  box-shadow: 0 1px 2px rgba(10,27,51,.05);
 }
 .field:focus { border-color: #1a3a66; outline: none; box-shadow: 0 0 0 3px rgba(26,58,102,.15); }
 .label { display: block; margin-bottom: .3rem; font-size: .875rem; font-weight: 700; color: #0a1b33; }
 
 /* İletişim sayfası sekmeleri */
 .tab { flex: 1; padding: .8rem 1rem; font-weight: 700; color: #475569; border-bottom: 3px solid transparent; }
-.tab[aria-selected="true"] { color: #0a1b33; border-bottom-color: #0a1b33; }
+.tab[aria-selected="true"] { color: #0a1b33; border-bottom-color: #0a1b33; background: #f4f7fb; }
+
+/* ---------- 7) Hareket ve erişilebilirlik ---------- */
 
 /* İl değişince kartların yenilendiğini gösteren kısa geçiş */
 .results.is-updating { animation: swap .28s ease-out; }
@@ -45,8 +216,15 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   outline: 3px solid #7aa2e3; outline-offset: 2px;
 }
 
+/* Çok dar ekranlarda rozetler tek sütun */
+@media (max-width: 380px) {
+  section[class*="grid-cols-[1fr_1fr]"] > div:first-child { grid-template-columns: 1fr; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .results.is-updating { animation: none; }
   .hero-card { transform: none; }
+  article.bg-white.rounded-2xl:hover, ol > li.bg-white.rounded-xl:hover,
+  main > section.bg-navy-900:not(.hero) a:hover, .bg-wa:hover { transform: none; }
 }

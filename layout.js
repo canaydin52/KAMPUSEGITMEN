@@ -6,7 +6,8 @@
     ["hakkimizda.html", "Hakkımızda"],
     ["iletisim.html", "İletişim"]
   ];
-  const page = location.pathname.split("/").pop() || "index.html";
+  const file = location.pathname.split("/").pop() || "index.html";
+  const page = file === "egitmen-detay.html" ? "egitmenler.html" : file; // profil sayfasında "Eğitmenler" menüsü aktif görünür
   const desktop = NAV.map(([h, t]) =>
     `<a href="${h}" class="nav-link${page === h ? " is-active" : ""}"${page === h ? ' aria-current="page"' : ""}>${t}</a>`).join("");
   const mobile = NAV.map(([h, t]) =>
@@ -34,7 +35,7 @@
       <div class="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <p class="font-display text-xl font-extrabold text-white">Kampüs Eğitmen</p>
-          <p class="mt-3 max-w-sm leading-relaxed">Türkiye genelinde üniversiteli eğitmenlerle öğrencileri buluşturan birebir özel ders platformu.</p>
+          <p class="mt-3 max-w-sm leading-relaxed">Pilot illerimizde üniversiteli eğitmenlerle öğrencileri buluşturan birebir özel ders platformu.</p>
         </div>
         <div>
           <p class="font-bold text-white">Sayfalar</p>

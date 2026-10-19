@@ -1,0 +1,41 @@
+/* Kampüs Eğitmen – Tailwind'e ek özel stiller */
+
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+/* Hero: koyu lacivert zemin üzerinde ince ızgara dokusu */
+.hero {
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.hero-card { transform: rotate(2deg); }
+
+/* İl seçici butonları */
+.chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0a1b33;
+  border-radius: 9999px;
+  padding: .55rem 1.1rem;
+  font-weight: 700;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+.chip:hover { border-color: #1a3a66; }
+.chip[aria-pressed="true"] { background: #0a1b33; border-color: #0a1b33; color: #fff; }
+
+/* İl değişince kartların yenilendiğini gösteren kısa geçiş */
+.results.is-updating { animation: swap .28s ease-out; }
+@keyframes swap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Klavye odağı */
+a:focus-visible, button:focus-visible, select:focus-visible {
+  outline: 3px solid #7aa2e3;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .results.is-updating { animation: none; }
+  .hero-card { transform: none; }
+}

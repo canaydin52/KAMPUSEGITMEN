@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kampüs Eğitmen | Üniversiteden Birebir Özel Ders</title>
+  <meta name="description" content="Türkiye genelinde üniversiteli eğitmenlerle birebir özel ders. İlini seç, eğitmeni bul, WhatsApp'tan hemen yaz." />
+  <meta name="theme-color" content="#0a1b33" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { 950: '#071326', 900: '#0a1b33', 800: '#102746', 700: '#1a3a66', 100: '#dbe5f3' },
+            wa: '#25d366'
+          },
+          fontFamily: {
+            display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+            sans: ['Manrope', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased">
+
+  <!-- Üst menü -->
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-navy-900/95 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+      <a href="#top" class="font-display text-xl font-extrabold tracking-tight text-white">Kampüs<span class="text-navy-100/70"> Eğitmen</span></a>
+      <nav class="hidden items-center gap-7 text-sm font-semibold text-navy-100 md:flex">
+        <a href="#nasil" class="hover:text-white">Nasıl çalışır?</a>
+        <a href="#egitmenler" class="hover:text-white">Eğitmenler</a>
+        <a href="#iletisim" class="hover:text-white">İletişim</a>
+      </nav>
+      <a data-wa-general href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-full bg-wa px-4 py-2 text-sm font-bold text-navy-950 hover:brightness-110">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.2 13.9c-.2.6-1.300 1.200-1.800 1.200-.5.100-1 .2-3.300-.7a11.300 11.300 0 0 1-4.800-4.200c-.4-.600-1.200-1.700-1.200-3s.7-1.900 1-2.200c.2-.3.500-.3.700-.3h.5c.2 0 .4 0 .6.500l.8 1.900c.1.200.1.400 0 .6l-.4.600-.4.500c-.1.200-.3.400-.1.700.2.300.8 1.300 1.700 2.100 1.100 1 2.100 1.300 2.400 1.500.3.100.5.100.6-.1l.9-1.100c.2-.3.400-.2.700-.1l1.800.9c.3.100.5.200.5.400.1.100.1.600-.1 1.200Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero relative overflow-hidden bg-navy-900 text-white">
+      <div class="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-16 md:grid-cols-[1.15fr_0.85fr] md:pb-28 md:pt-24">
+        <div>
+          <h1 class="font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+            Kampüs Eğitmen<br />
+            <span class="text-navy-100">Üniversiteden Birebir Özel Ders</span>
+          </h1>
+          <p class="mt-6 max-w-xl text-lg leading-relaxed text-navy-100/90">
+            Türkiye'nin dört bir yanındaki üniversite öğrencileri ve mezunlarıyla, bulunduğun ilde ya da online olarak çalış. Eğitmeni seç, WhatsApp'tan yaz, ilk dersi planla.
+          </p>
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a href="#egitmenler" class="rounded-full bg-white px-6 py-3 font-bold text-navy-900 hover:bg-navy-100">İlini seç, eğitmenleri gör</a>
+            <a data-wa-general href="#" target="_blank" rel="noopener" class="rounded-full border border-white/30 px-6 py-3 font-bold text-white hover:bg-white/10">WhatsApp'tan yaz</a>
+          </div>
+        </div>
+
+        <!-- Hero kartı: platformun ana fikrini gösteren örnek -->
+        <div class="hero-card mx-auto w-full max-w-sm rounded-2xl bg-white p-5 text-slate-700 shadow-2xl shadow-black/30">
+          <div class="flex items-center gap-4">
+            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="" class="h-16 w-16 rounded-full object-cover" onerror="this.style.visibility='hidden'" />
+            <div>
+              <p class="font-display text-lg font-extrabold text-navy-900">Elif Yıldız</p>
+              <p class="text-sm text-slate-500">ODTÜ · Matematik</p>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-navy-800">
+            <span class="rounded-full bg-slate-100 px-3 py-1">TYT/AYT Matematik</span>
+            <span class="rounded-full bg-slate-100 px-3 py-1">Kalkülüs</span>
+          </div>
+          <div class="mt-5 flex items-center justify-between border-t border-slate-200 pt-4">
+            <p class="text-sm text-slate-500">Saatlik <span class="font-display text-xl font-extrabold text-navy-900">450 ₺</span></p>
+            <span class="rounded-full bg-wa px-4 py-2 text-sm font-bold text-navy-950">WhatsApp'tan yaz</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nasıl çalışır -->
+    <section id="nasil" class="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <h2 class="font-display text-3xl font-extrabold text-navy-900 md:text-4xl">Üç adımda ilk dersin hazır</h2>
+      <ol class="mt-10 grid gap-5 md:grid-cols-3">
+        <li class="rounded-xl border border-slate-200 bg-white p-6">
+          <span class="font-display text-3xl font-extrabold text-navy-700">1</span>
+          <h3 class="mt-3 font-display text-xl font-bold text-navy-900">İlini seç</h3>
+          <p class="mt-2 text-slate-600">81 ilden birini seç; o ildeki üniversitelerin eğitmenleri listelensin.</p>
+        </li>
+        <li class="rounded-xl border border-slate-200 bg-white p-6">
+          <span class="font-display text-3xl font-extrabold text-navy-700">2</span>
+          <h3 class="mt-3 font-display text-xl font-bold text-navy-900">Eğitmenini bul</h3>
+          <p class="mt-2 text-slate-600">Üniversite, bölüm, uzmanlık alanı ve saatlik ücrete göre sana uygun olanı seç.</p>
+        </li>
+        <li class="rounded-xl border border-slate-200 bg-white p-6">
+          <span class="font-display text-3xl font-extrabold text-navy-700">3</span>
+          <h3 class="mt-3 font-display text-xl font-bold text-navy-900">WhatsApp'tan yaz</h3>
+          <p class="mt-2 text-slate-600">Tek tıkla eğitmenle yazışmaya başla, ders gün ve saatini birlikte belirleyin.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- İl seçimi + eğitmen listesi -->
+    <section id="egitmenler" class="border-y border-slate-200 bg-slate-100">
+      <div class="mx-auto max-w-6xl px-5 py-16 md:py-20">
+        <h2 class="font-display text-3xl font-extrabold text-navy-900 md:text-4xl">Hangi ildesin?</h2>
+        <p class="mt-3 max-w-2xl text-slate-600">Hızlı seçim için bir şehre dokun ya da listeden Türkiye'deki herhangi bir ili seç.</p>
+
+        <div id="city-chips" class="mt-7 flex flex-wrap gap-2" role="group" aria-label="Popüler iller"></div>
+
+        <div class="mt-5 max-w-xs">
+          <label for="city-select" class="mb-1 block text-sm font-semibold text-navy-900">Tüm iller</label>
+          <select id="city-select" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 font-semibold text-navy-900 focus:border-navy-700 focus:outline-none"></select>
+        </div>
+
+        <div class="mt-12 flex items-end justify-between gap-4">
+          <h3 id="results-title" class="font-display text-2xl font-extrabold text-navy-900"></h3>
+        </div>
+        <div id="tutor-grid" class="results mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Genel WhatsApp alanı -->
+    <section id="iletisim" class="bg-navy-900 text-white">
+      <div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-14 md:flex-row md:items-center">
+        <div>
+          <h2 class="font-display text-3xl font-extrabold md:text-4xl">Doğru eğitmeni bulamadın mı?</h2>
+          <p class="mt-3 max-w-xl text-navy-100/90">Hangi ders ve seviyede destek aradığını yaz; seni ilindeki uygun eğitmenle eşleştirelim.</p>
+        </div>
+        <a data-wa-general href="#" target="_blank" rel="noopener" class="shrink-0 rounded-full bg-wa px-7 py-4 text-lg font-bold text-navy-950 hover:brightness-110">WhatsApp'tan bize yaz</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-navy-950 py-8 text-sm text-navy-100/70">
+    <div class="mx-auto flex max-w-6xl flex-col gap-2 px-5 sm:flex-row sm:justify-between">
+      <p>© <span id="year"></span> Kampüs Eğitmen. Tüm hakları saklıdır.</p>
+      <p>Türkiye geneli üniversiteli özel ders platformu</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

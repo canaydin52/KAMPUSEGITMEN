@@ -1,7 +1,7 @@
 /* Kampüs Eğitmen – ORTAK VERİ VE YARDIMCI FONKSİYONLAR (tüm sayfalarda kullanılır) */
 
 // 1) KENDİ NUMARANLA DEĞİŞTİR: başında + ve boşluk olmadan, ülke koduyla (örn. 905551234567)
-const WHATSAPP_NUMBER = "905550000000";
+const WHATSAPP_NUMBER = "905527971888";
 
 // 2) Örnek eğitmen verisi (görseller randomuser.me'den örnek amaçlıdır)
 // Alanlar: ad, cinsiyet (men/women), foto no, üniversite, bölüm, uzmanlık[], saatlik ücret (₺)

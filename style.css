@@ -1,8 +1,8 @@
-/* Kampüs Eğitmen – Tailwind'e ek özel stiller */
+/* Kampüs Eğitmen – Tailwind'e ek özel stiller (tüm sayfalarda ortak) */
 
 html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 
-/* Hero: koyu lacivert zemin üzerinde ince ızgara dokusu */
+/* Lacivert bölümlerde ince ızgara dokusu */
 .hero {
   background-image:
     linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
@@ -11,27 +11,38 @@ html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 }
 .hero-card { transform: rotate(2deg); }
 
+/* Üst menü bağlantıları */
+.nav-link { color: #dbe5f3; font-weight: 600; font-size: .875rem; padding: .35rem 0; border-bottom: 2px solid transparent; }
+.nav-link:hover { color: #fff; }
+.nav-link.is-active { color: #fff; border-bottom-color: #7aa2e3; }
+
 /* İl seçici butonları */
 .chip {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #0a1b33;
-  border-radius: 9999px;
-  padding: .55rem 1.1rem;
-  font-weight: 700;
+  border: 1px solid #cbd5e1; background: #fff; color: #0a1b33;
+  border-radius: 9999px; padding: .55rem 1.1rem; font-weight: 700;
   transition: background-color .15s, color .15s, border-color .15s;
 }
 .chip:hover { border-color: #1a3a66; }
 .chip[aria-pressed="true"] { background: #0a1b33; border-color: #0a1b33; color: #fff; }
 
+/* Form alanları */
+.field {
+  width: 100%; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff;
+  padding: .7rem .9rem; color: #0a1b33; font-weight: 500;
+}
+.field:focus { border-color: #1a3a66; outline: none; box-shadow: 0 0 0 3px rgba(26,58,102,.15); }
+.label { display: block; margin-bottom: .3rem; font-size: .875rem; font-weight: 700; color: #0a1b33; }
+
+/* İletişim sayfası sekmeleri */
+.tab { flex: 1; padding: .8rem 1rem; font-weight: 700; color: #475569; border-bottom: 3px solid transparent; }
+.tab[aria-selected="true"] { color: #0a1b33; border-bottom-color: #0a1b33; }
+
 /* İl değişince kartların yenilendiğini gösteren kısa geçiş */
 .results.is-updating { animation: swap .28s ease-out; }
 @keyframes swap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* Klavye odağı */
-a:focus-visible, button:focus-visible, select:focus-visible {
-  outline: 3px solid #7aa2e3;
-  outline-offset: 2px;
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid #7aa2e3; outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -91,5 +91,5 @@ function emptyState(city) {
 }
 
 // Ortak e-posta ve sosyal medya (kendi bilgilerinle değiştir)
-const CONTACT_EMAIL = "iletisim@kampusegitmen.com";
-const INSTAGRAM_URL = "https://instagram.com/kampusegitmen";
+const CONTACT_EMAIL = "v.canaydin52@gmail.com";
+const INSTAGRAM_URL = "cnaydinvs";

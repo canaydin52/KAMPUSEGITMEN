@@ -249,7 +249,7 @@ const TUTORS = [
     id: "veysel-aydin",
     ad: "Veysel Can Aydın",
     il: "Eskişehir",
-    foto: "img/ahmet.jpg",
+    foto: "img/ahmet.png",
     universite: "Eskişehir Osmangazi Üniversitesi",
     bolum: "Elektrik-Elektronik Mühendisliği",
     derece: "YKS Sayısal İlk 5.000",

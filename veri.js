@@ -245,6 +245,20 @@ const TUTORS = [
     saatler: "Hafta sonu 10:00–20:00, hafta içi akşamlar",
     hakkinda: "Sude Polat, Eskişehir Osmangazi Üniversitesi Eczacılık bölümünde. Kimya, Biyokimya ve Farmakoloji konularında birebir, sade anlatımla çalışıyor; ders planı öğrencinin seviyesine göre hazırlanır."
   },
+  {
+    id: "veysel-aydin",
+    ad: "Veysel Can Aydın",
+    il: "Eskişehir",
+    foto: "img/ahmet.jpg",
+    universite: "Eskişehir Osmangazi Üniversitesi",
+    bolum: "Elektrik-Elektronik Mühendisliği",
+    derece: "YKS Sayısal İlk 5.000",
+    dersler: ["Matematik", "Fizik", "Devre Analizi"],
+    ucret: 100.000,
+    lokasyon: ["Odunpazarı"],
+    saatler: "Hafta içi 18:00–22:00",
+    hakkinda: "Kurucu , mukkkkemmel bi eğitmen"
+  },
 
   // ---------------------- ANTALYA ----------------------
   {

@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eğitmen Profili | Kampüs Eğitmen</title>
-  <meta name="description" content="Kampüs Eğitmen eğitmen profili." />
   <meta name="theme-color" content="#0a1b33" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,131 +15,169 @@
 <body class="bg-slate-50 font-sans text-slate-700 antialiased">
   <div id="site-header"></div>
 
-  <main>
-    <!-- Eğitmen bulunamazsa -->
-    <section id="not-found" class="mx-auto hidden max-w-3xl px-5 py-24 text-center">
-      <h1 class="font-display text-3xl font-extrabold text-navy-900">Bu eğitmeni bulamadık</h1>
-      <p class="mt-3 text-slate-600">Bağlantı eski olabilir ya da eğitmen listeden kaldırılmış olabilir.</p>
-      <a href="egitmenler.html" class="mt-6 inline-block rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Tüm eğitmenlere dön</a>
-    </section>
-
-    <div id="profile" class="hidden">
-      <!-- Üst alan: fotoğraf ve ad -->
-      <section class="hero bg-navy-900 text-white">
-        <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
-          <a id="back-link" href="egitmenler.html" class="text-sm font-semibold text-navy-100 hover:text-white">Tüm eğitmenler</a>
-          <div class="mt-6 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-            <div id="p-photo"></div>
-            <div>
-              <h1 id="p-name" class="font-display text-3xl font-extrabold tracking-tight md:text-5xl"></h1>
-              <p id="p-uni" class="mt-2 text-lg text-navy-100/90"></p>
-              <p class="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-                <span id="p-derece" class="rounded-full border border-white/25 bg-white/10 px-3 py-1"></span>
-                <span id="p-city" class="rounded-full border border-white/25 bg-white/10 px-3 py-1"></span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Detaylar -->
-      <section class="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-[1.5fr_1fr] md:py-16">
-        <div class="space-y-6">
-          <div class="rounded-xl border border-slate-200 bg-white p-6">
-            <h2 class="font-display text-xl font-extrabold text-navy-900">Eğitmen bilgileri</h2>
-            <dl class="mt-4 grid gap-x-6 gap-y-4 sm:grid-cols-2">
-              <div><dt class="text-sm text-slate-500">Üniversite</dt><dd id="s-uni" class="font-semibold text-navy-900"></dd></div>
-              <div><dt class="text-sm text-slate-500">Bölüm</dt><dd id="s-bolum" class="font-semibold text-navy-900"></dd></div>
-              <div><dt class="text-sm text-slate-500">Sınav başarısı</dt><dd id="s-derece" class="font-semibold text-navy-900"></dd></div>
-              <div><dt class="text-sm text-slate-500">İl</dt><dd id="s-il" class="font-semibold text-navy-900"></dd></div>
-            </dl>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-6">
-            <h2 class="font-display text-xl font-extrabold text-navy-900">Hakkında</h2>
-            <p id="p-about" class="mt-3 text-lg leading-relaxed"></p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-6">
-            <h2 class="font-display text-xl font-extrabold text-navy-900">Uzmanlık alanları ve dersler</h2>
-            <ul id="p-skills" class="mt-4 flex flex-wrap gap-2"></ul>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-6">
-            <h2 class="font-display text-xl font-extrabold text-navy-900">Uygun lokasyonlar ve saatler</h2>
-            <ul id="p-locs" class="mt-4 flex flex-wrap gap-2"></ul>
-            <p class="mt-4 text-sm text-slate-500">Uygun saatler</p>
-            <p id="p-hours" class="font-semibold text-navy-900"></p>
-          </div>
-        </div>
-
-        <!-- Ücret ve iletişim (mobilde en üstte görünür) -->
-        <aside class="order-first md:order-none">
-          <div class="rounded-xl border border-slate-200 bg-white p-6 md:sticky md:top-24">
-            <p class="text-sm text-slate-500">Saatlik ücret</p>
-            <p id="p-price" class="font-display text-4xl font-extrabold text-navy-900"></p>
-            <a id="p-wa" href="#" target="_blank" rel="noopener" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-wa px-6 py-4 text-lg font-bold text-navy-950 hover:brightness-110"></a>
-            <p class="mt-3 text-sm text-slate-500">WhatsApp'ta hazır bir mesajla açılır; göndermeden önce düzenleyebilirsin.</p>
-          </div>
-        </aside>
-      </section>
-
-      <!-- Aynı ildeki diğer eğitmenler -->
-      <section id="others" class="hidden border-t border-slate-200 bg-slate-100">
-        <div class="mx-auto max-w-6xl px-5 py-14">
-          <h2 id="others-title" class="font-display text-2xl font-extrabold text-navy-900 md:text-3xl"></h2>
-          <div id="others-grid" class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
-        </div>
-      </section>
-    </div>
+  <main id="page">
+    <p class="mx-auto max-w-6xl px-5 py-16 text-slate-500">Yükleniyor…</p>
   </main>
 
+  <dialog id="req" class="modal">
+    <form id="rf" class="grid gap-4">
+      <h2 class="font-display text-xl font-extrabold text-navy-900"><span id="who"></span> ile görüşme talebi</h2>
+      <p class="text-sm text-slate-600">Talebin yöneticiye iletilir. Onaylanırsa Mesajlar bölümünde yazışma açılır. Yazışmalar platform güvenliği için denetlenebilir.</p>
+      <div><label for="rmsg" class="label">Ne tür bir ders arıyorsun? (isteğe bağlı)</label><textarea id="rmsg" rows="3" maxlength="500" class="field"></textarea></div>
+      <p id="rerr" class="text-sm text-red-700" role="alert"></p>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="rcancel" class="rounded-full px-5 py-2 font-bold text-slate-600">Vazgeç</button>
+        <button class="rounded-full bg-navy-900 px-5 py-2 font-bold text-white hover:bg-navy-800">Talebi gönder</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="veri.js"></script>
   <script src="data.js"></script>
+  <script src="supabase.js"></script>
   <script src="layout.js"></script>
   <script>
-    const t = findTutor(new URLSearchParams(location.search).get("id"));
 
-    if (!t) {
-      $("not-found").classList.remove("hidden");
-      document.title = "Eğitmen bulunamadı | Kampüs Eğitmen";
-    } else {
-      document.title = `${t.ad} | Kampüs Eğitmen`;
-      document.querySelector('meta[name="description"]').content =
-        `${t.ad}: ${t.universite} ${t.bolum}. ${t.il} ilinde birebir özel ders.`;
-      $("profile").classList.remove("hidden");
+    const tid = new URLSearchParams(location.search).get("id") || "";
+    let T = null, user = null, hasConv = false, myRating = 0, reviews = [], slots = [];
 
-      $("p-photo").innerHTML = avatar(t, "h-28 w-28 sm:h-32 sm:w-32", "text-3xl");
-      $("p-name").textContent = t.ad;
-      $("p-uni").textContent = `${t.universite} - ${t.bolum}`;
-      $("p-derece").textContent = t.derece;
-      $("p-city").textContent = t.il;
-      $("back-link").href = "egitmenler.html?il=" + encodeURIComponent(t.il);
+    const notFound = () => { $("page").innerHTML = '<div class="mx-auto max-w-xl px-5 py-20 text-center"><h1 class="font-display text-2xl font-extrabold text-navy-900">Eğitmen bulunamadı</h1><p class="mt-3 text-slate-600">Bu profil yayında olmayabilir ya da bağlantı hatalı.</p><a href="egitmenler.html" class="mt-6 inline-block rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Tüm eğitmenlere dön</a></div>'; };
 
-      $("s-uni").textContent = t.universite;
-      $("s-bolum").textContent = t.bolum;
-      $("s-derece").textContent = t.derece;
-      $("s-il").textContent = t.il;
-      $("p-about").textContent = t.hakkinda || "";
-      if (!t.hakkinda) $("p-about").parentElement.classList.add("hidden");
-
-      const chip = (s) => `<li class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-sm font-semibold text-navy-800">${s}</li>`;
-      $("p-skills").innerHTML = t.dersler.map(chip).join("");
-      $("p-locs").innerHTML = (t.lokasyon || []).map(chip).join("");
-      $("p-hours").textContent = t.saatler || "Eğitmenle birlikte belirlenir";
-
-      $("p-price").textContent = `${t.ucret} ₺`;
-      $("p-wa").href = tutorWaLink(t);
-      $("p-wa").innerHTML = WA_ICON + " Ders Planla / İletişime Geç";
-
-      const others = tutorsByCity(t.il).filter((o) => o.id !== t.id).slice(0, 3);
-      if (others.length) {
-        $("others").classList.remove("hidden");
-        $("others-title").textContent = `${t.il} ilindeki diğer eğitmenler`;
-        $("others-grid").innerHTML = others.map(tutorCard).join("");
-      }
+    function availHtml() {
+      return GUNLER.map((g, i) => {
+        const mine = slots.filter((s) => s.day === i + 1);
+        return `<li class="flex items-start justify-between gap-3 border-b border-slate-100 py-2 text-sm last:border-0">
+          <span class="w-24 shrink-0 font-semibold ${mine.length ? "text-navy-900" : "text-slate-400"}">${g}</span>
+          <span class="flex flex-wrap justify-end gap-1">${mine.length ? mine.map((s) => `<span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">${hhmm(s.start_time)}–${hhmm(s.end_time)}</span>`).join("") : '<span class="text-slate-400">Müsait değil</span>'}</span></li>`;
+      }).join("");
     }
+
+    function reviewsHtml() {
+      return reviews.length ? reviews.map((r) => `<li class="rounded-xl border border-slate-200 bg-white p-4">
+        <div class="flex items-center justify-between gap-2"><p class="font-bold text-navy-900">${esc(r.reviewer_name)}</p><p class="text-xs text-slate-500">${fmtDate(r.created_at)}</p></div>
+        <p class="mt-1 text-amber-500" aria-label="${r.rating} yıldız">${starsText(r.rating)}</p>
+        ${r.comment ? `<p class="mt-2 whitespace-pre-wrap break-words">${esc(r.comment)}</p>` : ""}</li>`).join("")
+        : '<li class="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-slate-600">Henüz yorum yok. Bu eğitmenle ders yapan ilk öğrenci sen olabilirsin.</li>';
+    }
+
+    function reviewFormHtml() {
+      if (!user) return `<p class="rounded-xl bg-slate-100 p-4 text-sm text-slate-600"><a class="font-bold text-navy-700 underline" href="giris.html?next=${encodeURIComponent("egitmen-detay.html?id=" + tid)}">Giriş yap</a>, eğitmenle yazıştıysan yorum bırakabilirsin.</p>`;
+      if (user.role !== "student") return "";
+      if (!hasConv) return '<p class="rounded-xl bg-slate-100 p-4 text-sm text-slate-600">Yorum yapabilmek için bu eğitmenle onaylanmış bir yazışman olmalı. Böylece yorumlar gerçek öğrencilerden gelir.</p>';
+      return `<form id="rvf" class="rounded-xl border border-slate-200 bg-white p-4">
+        <p class="font-bold text-navy-900">${myRating ? "Yorumunu güncelle" : "Yorum bırak"}</p>
+        <div id="stars" class="mt-2 flex gap-1" role="radiogroup" aria-label="Puan">${[1, 2, 3, 4, 5].map((n) => `<button type="button" role="radio" data-star="${n}" aria-checked="${n === myRating}" aria-label="${n} yıldız" class="text-3xl leading-none ${n <= myRating ? "text-amber-500" : "text-slate-300"}">★</button>`).join("")}</div>
+        <textarea id="rvtext" rows="3" maxlength="600" class="field mt-3" placeholder="Deneyimini kısaca yaz (isteğe bağlı)"></textarea>
+        <p id="rvmsg" class="mt-2 text-sm" role="alert"></p>
+        <button class="mt-2 rounded-full bg-navy-900 px-5 py-2 font-bold text-white hover:bg-navy-800">Yorumu kaydet</button></form>`;
+    }
+
+    function ctaHtml() {
+      if (user && user.id === T.user_id) return '<a href="panel.html" class="block rounded-full bg-navy-900 px-6 py-3 text-center font-bold text-white hover:bg-navy-800">Profilimi düzenle</a>';
+      if (user && hasConv) return '<a href="mesajlar.html" class="block rounded-full bg-navy-900 px-6 py-3 text-center font-bold text-white hover:bg-navy-800">Mesaj gönder</a>';
+      return '<button id="reqbtn" class="w-full rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Görüşme İste</button>';
+    }
+
+    function render() {
+      const t = T;
+      document.title = `${t.full_name} | Kampüs Eğitmen`;
+      $("page").innerHTML = `
+      <section class="hero bg-navy-900 text-white">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-5 py-12 md:py-16">
+          ${avatar(t, "h-32 w-32 md:h-40 md:w-40", "text-4xl")}
+          <div class="min-w-0 flex-1">
+            <h1 class="font-display text-3xl font-extrabold tracking-tight md:text-5xl">${esc(t.full_name)}</h1>
+            <p class="mt-2 text-lg text-navy-100/90">${esc(t.university)} · ${esc(t.department)}</p>
+            <p class="mt-1 text-navy-100/70">${esc(t.city)}</p>
+            <div class="mt-4 flex flex-wrap items-center gap-3 text-sm"><span class="rounded-full bg-white px-3 py-1">${ratingChip(t)}</span>${freeIntroChip(t)}${t.osym_verified ? '<span class="osym-badge">ÖSYM Onaylı Derece</span>' : ""}</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mx-auto grid max-w-6xl gap-8 px-5 py-10 md:grid-cols-[1.6fr_1fr] md:py-14">
+        <div class="space-y-10">
+          ${t.free_intro ? '<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5"><p class="font-display text-lg font-extrabold text-navy-900">🎁 İlk 20 dakika tanışma dersi ücretsiz</p><p class="mt-1 text-sm text-slate-700">Eğitmenle tanış, ihtiyacını anlat; devam edip etmemek sana kalmış.</p></div>' : ""}
+          <section><h2 class="font-display text-2xl font-extrabold text-navy-900">Hakkında</h2>
+            <p class="mt-3 whitespace-pre-wrap break-words leading-relaxed">${t.bio ? esc(t.bio) : "Eğitmen henüz tanıtım yazısı eklemedi."}</p>
+            ${t.rank_text ? `<p class="mt-3 text-sm text-slate-600">${t.osym_verified ? "ÖSYM onaylı derece" : "Sınav başarısı (eğitmen beyanı)"}: <strong>${esc(t.rank_text)}</strong></p>` : ""}</section>
+          <section><h2 class="font-display text-2xl font-extrabold text-navy-900">Verdiği dersler</h2>
+            <ul class="mt-3 flex flex-wrap gap-2">${(t.subjects || []).map((s) => `<li class="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-navy-800">${esc(s)}</li>`).join("") || '<li class="text-slate-500">Belirtilmemiş</li>'}</ul></section>
+          ${(t.badges || []).some((b) => BADGES[b]) ? `<section><h2 class="font-display text-2xl font-extrabold text-navy-900">Rozetler</h2><ul class="mt-3 flex flex-wrap gap-2">${badgeChips(t.badges)}</ul></section>` : ""}
+          <section><h2 class="font-display text-2xl font-extrabold text-navy-900">Öğrenci yorumları ${t.review_count ? `<span class="text-lg font-bold text-slate-500">(${t.review_count})</span>` : ""}</h2>
+            <div id="rvform" class="mt-4">${reviewFormHtml()}</div>
+            <ul id="rvlist" class="mt-4 space-y-3">${reviewsHtml()}</ul></section>
+        </div>
+
+        <aside class="space-y-5 md:sticky md:top-24 md:self-start">
+          <div class="rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-sm text-slate-500">Saatlik ücret</p>
+            <p class="font-display text-4xl font-extrabold text-navy-900">${esc(t.hourly_rate)} ₺</p>
+            <div class="mt-4">${ctaHtml()}</div>
+            ${t.areas && t.areas.length ? `<p class="mt-4 text-sm"><strong class="text-navy-900">Lokasyon:</strong> ${esc(t.areas.join(", "))}</p>` : ""}
+            ${t.hours ? `<p class="mt-1 text-sm"><strong class="text-navy-900">Not:</strong> ${esc(t.hours)}</p>` : ""}
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 class="font-display text-lg font-extrabold text-navy-900">Müsaitlik takvimi</h2>
+            ${slots.length ? `<ul class="mt-2">${availHtml()}</ul>` : '<p class="mt-2 text-sm text-slate-500">Eğitmen henüz müsaitlik eklemedi. Görüşme talebinde ihtiyacını yazabilirsin.</p>'}
+          </div>
+        </aside>
+      </div>`;
+    }
+
+    async function loadReviews() {
+      const { data } = await sb.from("public_reviews").select("*").eq("tutor_id", tid).order("created_at", { ascending: false });
+      reviews = data || [];
+    }
+
+    // ---------- Olaylar ----------
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("#reqbtn")) {
+        if (!user) { location.href = "giris.html?next=" + encodeURIComponent("egitmen-detay.html?id=" + tid); return; }
+        if (user.role !== "student") { alert("Görüşme talebi yalnızca öğrenci hesaplarıyla gönderilebilir."); return; }
+        $("who").textContent = T.full_name; $("rerr").textContent = ""; $("rmsg").value = ""; $("req").showModal();
+      }
+      const st = e.target.closest("[data-star]");
+      if (st) { myRating = +st.dataset.star; $("stars").querySelectorAll("[data-star]").forEach((b) => { const on = +b.dataset.star <= myRating; b.classList.toggle("text-amber-500", on); b.classList.toggle("text-slate-300", !on); b.setAttribute("aria-checked", String(+b.dataset.star === myRating)); }); }
+    });
+    $("rcancel").onclick = () => $("req").close();
+    $("rf").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { error } = await sb.from("contact_requests").insert({ student_id: user.id, tutor_id: T.user_id, message: $("rmsg").value.trim() || null });
+      if (error) { $("rerr").textContent = error.code === "23505" ? "Bu eğitmen için bekleyen bir talebin zaten var." : "Talep gönderilemedi. Bu eğitmenle zaten aktif bir görüşmen olabilir ya da hesabın kısıtlı."; return; }
+      $("req").close(); alert("Talebin yönetici onayına gönderildi. Onaylanınca Mesajlar bölümünden yazışabilirsin.");
+    });
+    document.addEventListener("submit", async (e) => {
+      if (e.target.id !== "rvf") return;
+      e.preventDefault();
+      const msg = $("rvmsg");
+      if (!myRating) { msg.className = "mt-2 text-sm text-red-700"; msg.textContent = "Lütfen 1–5 arası bir puan seç."; return; }
+      const { error } = await sb.from("reviews").upsert({ tutor_id: T.user_id, student_id: user.id, rating: myRating, comment: $("rvtext").value.trim() || null }, { onConflict: "tutor_id,student_id" });
+      if (error) { msg.className = "mt-2 text-sm text-red-700"; msg.textContent = "Yorum kaydedilemedi. Eğitmenle yazışman olduğundan emin ol."; return; }
+      await init(); // puan ortalamasını ve listeyi yenile
+      $("rvmsg") && ($("rvmsg").className = "mt-2 text-sm text-emerald-700", $("rvmsg").textContent = "Yorumun kaydedildi, teşekkürler!");
+    });
+
+    async function init() {
+      const { data: t } = await sb.from("public_tutors").select("*").eq("user_id", tid).maybeSingle();
+      if (!t) return notFound();
+      T = t;
+      const [, av] = await Promise.all([loadReviews(), sb.from("tutor_availability").select("day,start_time,end_time").eq("tutor_id", tid).order("day").order("start_time")]);
+      slots = av.data || [];
+      if (user && user.role === "student") {
+        const [{ data: c }, { data: mine }] = await Promise.all([
+          sb.from("conversations").select("id").eq("tutor_id", tid).limit(1),
+          sb.from("reviews").select("rating,comment").eq("tutor_id", tid).eq("student_id", user.id).maybeSingle()]);
+        hasConv = !!(c && c.length); myRating = mine ? mine.rating : 0;
+        render();
+        if (mine && $("rvtext")) $("rvtext").value = mine.comment || "";
+      } else render();
+    }
+
+    if (!/^[0-9a-f-]{36}$/i.test(tid)) notFound();
+    else me().then((u) => { user = u; return init(); });
+
   </script>
 </body>
 </html>

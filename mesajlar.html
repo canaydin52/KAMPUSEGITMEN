@@ -48,7 +48,7 @@
   <script src="layout.js"></script>
   <script>
 
-    let user, convId = null, chan = null; const seen = new Set();
+    let user, convId = null, chan = null; const seen = new Set(), tutors = {};
 
     const bubble = (m) => `<div class="flex ${m.sender_id === user.id ? "justify-end" : ""}"><div class="max-w-[80%] rounded-2xl px-4 py-2 ${m.sender_id === user.id ? "bg-navy-900 text-white" : "bg-slate-100 text-slate-800"}">
       <p class="whitespace-pre-wrap break-words">${esc(m.body)}</p><p class="mt-1 text-[10px] opacity-60">${fmtDate(m.created_at)}</p></div></div>`;
@@ -58,8 +58,23 @@
       $("thread").insertAdjacentHTML("beforeend", bubble(m)); $("thread").scrollTop = $("thread").scrollHeight;
     }
 
-    async function openConv(id, title, active) {
-      convId = id; seen.clear(); $("thead").textContent = title; $("thread").innerHTML = "";
+    // Başlık: eğitmenin küçük fotoğrafı, adı, dersleri ve rozetleri (eğitmen kendi ekranında karşısındaki öğrenciyi görür)
+    function headHtml(title, tutorId) {
+      const t = tutors[tutorId];
+      if (!t || user.role === "tutor") return esc(title);
+      return `<div class="flex items-center gap-3">${avatar(t, "h-11 w-11", "text-sm")}
+        <div class="min-w-0 flex-1">
+          <p class="truncate">${esc(title)}</p>
+          <ul class="mt-1 flex flex-wrap gap-1 text-[11px] font-semibold">
+            ${(t.subjects || []).slice(0, 4).map((s) => `<li class="rounded-full bg-navy-900/5 px-2 py-0.5 text-navy-800">${esc(s)}</li>`).join("")}
+            ${t.free_intro ? '<li class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">🎁 İlk 20 dk ücretsiz</li>' : ""}
+          </ul>
+        </div>
+        <a href="egitmen-detay.html?id=${encodeURIComponent(tutorId)}" class="shrink-0 text-sm font-bold text-navy-700 underline underline-offset-4">Profil</a></div>`;
+    }
+
+    async function openConv(id, title, active, tutorId) {
+      convId = id; seen.clear(); $("thead").innerHTML = headHtml(title, tutorId); $("thread").innerHTML = "";
       const canSend = active && user.role !== "admin"; // yönetici yazışmaları denetim amaçlı okur (admin.html)
       $("send").classList.toggle("hidden", !canSend); $("send").classList.toggle("flex", canSend);
       const { data } = await sb.from("messages").select("*").eq("conversation_id", id).order("created_at");
@@ -68,7 +83,7 @@
       chan = sb.channel("c-" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, (p) => add(p.new)).subscribe();
     }
 
-    $("convs").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) openConv(b.dataset.id, b.dataset.title, b.dataset.active === "true"); });
+    $("convs").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) openConv(b.dataset.id, b.dataset.title, b.dataset.active === "true", b.dataset.tutor); });
 
     $("send").addEventListener("submit", async (e) => {
       e.preventDefault(); const body = $("body").value.trim(); if (!body || !convId) return;
@@ -79,10 +94,19 @@
 
     (async () => {
       user = await guard(["student", "tutor", "admin"]); if (!user) return;
-      const { data: convs } = await sb.from("conversations").select("id,active,student:profiles!conversations_student_fk(full_name),tutor:profiles!conversations_tutor_fk(full_name)").order("created_at", { ascending: false });
+      const { data: convs } = await sb.from("conversations").select("id,active,tutor_id,student:profiles!conversations_student_fk(full_name),tutor:profiles!conversations_tutor_fk(full_name)").order("created_at", { ascending: false });
+
+      const ids = [...new Set((convs || []).map((c) => c.tutor_id))];
+      if (ids.length) {
+        const { data: ts } = await sb.from("public_tutors").select("user_id,full_name,avatar_url,subjects,free_intro").in("user_id", ids);
+        (ts || []).forEach((t) => (tutors[t.user_id] = t));
+      }
+
       $("convs").innerHTML = (convs || []).map((c) => {
         const name = user.role === "student" ? c.tutor?.full_name : user.role === "tutor" ? c.student?.full_name : `${c.student?.full_name || "?"} – ${c.tutor?.full_name || "?"}`;
-        return `<li><button data-id="${esc(c.id)}" data-title="${esc(name || "Kullanıcı")}" data-active="${c.active}" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-left font-semibold text-navy-900 hover:bg-slate-50">${esc(name || "Kullanıcı")}${c.active ? "" : ' <span class="text-xs font-normal text-slate-500">(kapalı)</span>'}</button></li>`;
+        const t = tutors[c.tutor_id], showAv = user.role !== "tutor";
+        const av = showAv ? avatar(t || { full_name: c.tutor?.full_name }, "h-9 w-9", "text-xs") : "";
+        return `<li><button data-id="${esc(c.id)}" data-tutor="${esc(c.tutor_id)}" data-title="${esc(name || "Kullanıcı")}" data-active="${c.active}" class="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left font-semibold text-navy-900 hover:bg-slate-50">${av}<span class="min-w-0 truncate">${esc(name || "Kullanıcı")}${c.active ? "" : ' <span class="text-xs font-normal text-slate-500">(kapalı)</span>'}</span></button></li>`;
       }).join("") || '<li class="text-sm text-slate-500">Henüz yazışmanız yok.</li>';
 
       if (user.role === "student") {

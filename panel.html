@@ -21,8 +21,20 @@
       <p id="status" class="text-sm"></p>
     </div>
     <p class="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-600">Profilin yönetici onayından sonra sitede görünür. Üniversite, bölüm veya sınav başarısını değiştirirsen ÖSYM rozetin kalkar ve profilin yeniden onaya gider.</p>
+    <p id="viewlink" class="hidden text-sm"><a id="viewa" class="font-bold text-navy-700 underline underline-offset-4" href="#">Öğrencilerin gördüğü profilini aç</a></p>
 
     <form id="pf" class="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-2">
+      <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
+        <div id="avprev"></div>
+        <div class="min-w-0 flex-1">
+          <label class="label" for="avfile">Profil fotoğrafı (JPG, PNG veya WebP, en fazla 2 MB)</label>
+          <input id="avfile" type="file" accept="image/jpeg,image/png,image/webp" class="field" />
+          <label class="label mt-3" for="avatar">veya fotoğraf bağlantısı (https://…)</label>
+          <input id="avatar" type="url" maxlength="500" class="field" placeholder="https://" />
+          <p id="avmsg" class="mt-1 text-sm" role="alert"></p>
+        </div>
+      </div>
+
       <div><label class="label" for="city">İl</label><select id="city" class="field"></select></div>
       <div><label class="label" for="rate">Saatlik ücret (₺)</label><input id="rate" type="number" min="0" max="10000" required class="field" /></div>
       <div><label class="label" for="uni">Üniversite</label><input id="uni" required class="field" maxlength="120" /></div>
@@ -30,13 +42,33 @@
       <div class="sm:col-span-2"><label class="label" for="rank">Sınav başarısı (örn. YKS Sayısal İlk 5.000)</label><input id="rank" class="field" maxlength="120" /></div>
       <div class="sm:col-span-2"><label class="label" for="subjects">Verdiğin dersler (virgülle ayır)</label><input id="subjects" required class="field" placeholder="Matematik, Fizik" /></div>
       <div><label class="label" for="areas">Uygun lokasyonlar (virgülle ayır)</label><input id="areas" class="field" placeholder="Odunpazarı, Online" /></div>
-      <div><label class="label" for="hours">Uygun saatler</label><input id="hours" class="field" maxlength="200" /></div>
+      <div><label class="label" for="hours">Uygun saatler (kısa not)</label><input id="hours" class="field" maxlength="200" /></div>
       <div class="sm:col-span-2"><label class="label" for="bio">Hakkında (en fazla 1000 karakter)</label><textarea id="bio" rows="4" maxlength="1000" class="field"></textarea></div>
+
+      <label class="sm:col-span-2 flex cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <input id="free" type="checkbox" class="mt-1 h-5 w-5" />
+        <span><strong class="text-navy-900">İlk 20 dakika tanışma dersi ücretsizdir</strong><br /><span class="text-sm text-slate-600">Seçersen profilinde ve kartında “İlk 20 dk ücretsiz” rozeti görünür.</span></span>
+      </label>
+
+      <fieldset class="sm:col-span-2">
+        <legend class="label">Rozetlerin <span id="bcount" class="font-normal text-slate-500"></span></legend>
+        <p class="mb-2 text-sm text-slate-500">Seni en iyi anlatan en fazla 8 rozeti seç.</p>
+        <div id="badges" class="flex flex-wrap gap-2"></div>
+      </fieldset>
+
       <div class="sm:col-span-2">
         <button class="rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Kaydet ve onaya gönder</button>
         <p id="pmsg" class="mt-2 text-sm" role="alert"></p>
       </div>
     </form>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-6">
+      <h2 class="font-display text-xl font-extrabold text-navy-900">Müsaitlik takvimi</h2>
+      <p class="mt-2 text-sm text-slate-600">Ders verebildiğin gün ve saat aralıklarını ekle. Öğrenciler bunu profil sayfanda görür. Bu bölüm ayrı kaydedilir ve onay gerektirmez.</p>
+      <div id="avail" class="mt-3"></div>
+      <button id="avsave" type="button" class="mt-4 rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Müsaitliği kaydet</button>
+      <p id="amsg" class="mt-2 text-sm" role="alert"></p>
+    </section>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-6">
       <h2 class="font-display text-xl font-extrabold text-navy-900">ÖSYM sonuç belgesi</h2>
@@ -58,17 +90,92 @@
   <script src="layout.js"></script>
   <script>
 
-    let user;
+    let user, slots = [], picked = new Set();
     const list = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
     const say = (id, t, ok) => { $(id).className = "mt-2 text-sm " + (ok ? "text-emerald-700" : "text-red-700"); $(id).textContent = t; };
+    const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 7).padStart(2, "0") + ":00"); // 07:00 – 23:00
+    const opts = (sel) => HOURS.map((h) => `<option ${h === sel ? "selected" : ""}>${h}</option>`).join("");
 
+    // ---------- Fotoğraf ----------
+    function previewAvatar() {
+      $("avprev").innerHTML = avatar({ full_name: user.full_name, avatar_url: $("avatar").value.trim() }, "h-24 w-24", "text-3xl");
+    }
+    $("avatar").addEventListener("input", previewAvatar);
+    $("avfile").addEventListener("change", async () => {
+      const f = $("avfile").files[0]; if (!f) return;
+      const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[f.type];
+      if (!ext) return say("avmsg", "Yalnızca JPG, PNG veya WebP yükleyebilirsin.", false);
+      if (f.size > 2 * 1024 * 1024) return say("avmsg", "Fotoğraf en fazla 2 MB olabilir.", false);
+      say("avmsg", "Yükleniyor…", true);
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const up = await sb.storage.from("avatars").upload(path, f, { contentType: f.type, cacheControl: "3600" });
+      if (up.error) return say("avmsg", "Yüklenemedi: " + up.error.message, false);
+      $("avatar").value = sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+      previewAvatar(); say("avmsg", "Fotoğraf yüklendi. Kalıcı olması için aşağıdan “Kaydet”e bas.", true);
+    });
+
+    // ---------- Rozetler ----------
+    function renderBadges() {
+      $("badges").innerHTML = Object.entries(BADGES).map(([k, l]) =>
+        `<label class="cursor-pointer"><input type="checkbox" class="peer sr-only" data-b="${k}" ${picked.has(k) ? "checked" : ""} />
+         <span class="inline-block rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 peer-checked:border-navy-900 peer-checked:bg-navy-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-navy-700">${l}</span></label>`).join("");
+      $("bcount").textContent = `(${picked.size}/${MAX_BADGES})`;
+    }
+    $("badges").addEventListener("change", (e) => {
+      const k = e.target.dataset.b; if (!k) return;
+      if (e.target.checked) { if (picked.size >= MAX_BADGES) { e.target.checked = false; return say("pmsg", `En fazla ${MAX_BADGES} rozet seçebilirsin.`, false); } picked.add(k); }
+      else picked.delete(k);
+      $("bcount").textContent = `(${picked.size}/${MAX_BADGES})`;
+    });
+
+    // ---------- Müsaitlik ----------
+    function renderSlots() {
+      $("avail").innerHTML = GUNLER.map((g, i) => {
+        const d = i + 1, mine = slots.filter((s) => s.day === d).sort((a, b) => a.start.localeCompare(b.start));
+        return `<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 py-3">
+          <span class="w-24 font-bold text-navy-900">${g}</span>
+          ${mine.map((s) => `<span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold">${s.start}–${s.end}<button type="button" data-rm="${d}|${s.start}|${s.end}" aria-label="${g} ${s.start}–${s.end} aralığını sil" class="px-1 font-bold text-slate-500 hover:text-red-700">×</button></span>`).join("")}
+          <span class="ml-auto flex items-center gap-1">
+            <select data-s="${d}" aria-label="${g} başlangıç" class="field" style="width:auto;padding:.25rem .5rem">${opts("09:00")}</select>–
+            <select data-e="${d}" aria-label="${g} bitiş" class="field" style="width:auto;padding:.25rem .5rem">${opts("10:00")}</select>
+            <button type="button" data-add="${d}" class="rounded-full border border-slate-300 px-3 py-1 text-sm font-bold text-navy-900 hover:bg-slate-50">Ekle</button>
+          </span></div>`;
+      }).join("");
+    }
+    $("avail").addEventListener("click", (e) => {
+      const add = e.target.closest("[data-add]"), rm = e.target.closest("[data-rm]");
+      if (add) {
+        const d = +add.dataset.add, start = $("avail").querySelector(`[data-s="${d}"]`).value, end = $("avail").querySelector(`[data-e="${d}"]`).value;
+        if (end <= start) return say("amsg", "Bitiş saati başlangıçtan sonra olmalı.", false);
+        if (slots.length >= 40) return say("amsg", "En fazla 40 zaman aralığı ekleyebilirsin.", false);
+        if (!slots.some((s) => s.day === d && s.start === start && s.end === end)) slots.push({ day: d, start, end });
+        $("amsg").textContent = ""; renderSlots();
+      }
+      if (rm) { const [d, s, en] = rm.dataset.rm.split("|"); slots = slots.filter((x) => !(x.day === +d && x.start === s && x.end === en)); renderSlots(); }
+    });
+    $("avsave").addEventListener("click", async () => {
+      $("avsave").disabled = true;
+      const { error } = await sb.rpc("set_availability", { p_slots: slots });
+      $("avsave").disabled = false;
+      if (error) return say("amsg", "Kaydedilemedi: " + error.message, false);
+      say("amsg", "Müsaitlik takvimin kaydedildi.", true);
+    });
+
+    // ---------- Yükleme ----------
     async function loadProfile() {
       const { data: t } = await sb.from("tutor_profiles").select("*").eq("user_id", user.id).maybeSingle();
       if (!t) { $("status").textContent = "Henüz profil oluşturmadın."; return; }
       $("city").value = t.city; $("rate").value = t.hourly_rate; $("uni").value = t.university; $("dept").value = t.department;
       $("rank").value = t.rank_text || ""; $("subjects").value = (t.subjects || []).join(", "); $("areas").value = (t.areas || []).join(", ");
-      $("hours").value = t.hours || ""; $("bio").value = t.bio || "";
+      $("hours").value = t.hours || ""; $("bio").value = t.bio || ""; $("avatar").value = t.avatar_url || ""; $("free").checked = !!t.free_intro;
+      picked = new Set((t.badges || []).filter((b) => BADGES[b])); renderBadges(); previewAvatar();
       $("status").innerHTML = "Profil durumu: " + statusChip(t.status) + (t.osym_verified ? ' <span class="osym-badge">ÖSYM Onaylı Derece</span>' : "");
+      if (t.status === "approved") { $("viewlink").classList.remove("hidden"); $("viewa").href = "egitmen-detay.html?id=" + encodeURIComponent(user.id); }
+    }
+
+    async function loadSlots() {
+      const { data } = await sb.from("tutor_availability").select("day,start_time,end_time").eq("tutor_id", user.id).order("day").order("start_time");
+      slots = (data || []).map((r) => ({ day: r.day, start: hhmm(r.start_time), end: hhmm(r.end_time) })); renderSlots();
     }
 
     async function loadDocs() {
@@ -80,9 +187,12 @@
 
     $("pf").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const av = $("avatar").value.trim();
+      if (av && !/^https:\/\//i.test(av)) return say("pmsg", "Fotoğraf bağlantısı https:// ile başlamalı.", false);
       const row = { user_id: user.id, city: $("city").value, university: $("uni").value.trim(), department: $("dept").value.trim(),
         rank_text: $("rank").value.trim() || null, subjects: list($("subjects").value), hourly_rate: +$("rate").value,
-        areas: list($("areas").value), hours: $("hours").value.trim() || null, bio: $("bio").value.trim() || null };
+        areas: list($("areas").value), hours: $("hours").value.trim() || null, bio: $("bio").value.trim() || null,
+        avatar_url: av || null, free_intro: $("free").checked, badges: [...picked] };
       const { error } = await sb.from("tutor_profiles").upsert(row, { onConflict: "user_id" });
       if (error) return say("pmsg", "Kaydedilemedi: " + error.message, false);
       say("pmsg", "Kaydedildi. Profilin yönetici onayına gönderildi.", true); loadProfile();
@@ -103,7 +213,8 @@
     (async () => {
       user = await guard(["tutor"]); if (!user) return;
       $("city").innerHTML = ILLER.map((c) => `<option>${c}</option>`).join("");
-      loadProfile(); loadDocs();
+      renderBadges(); previewAvatar(); renderSlots();
+      loadProfile(); loadSlots(); loadDocs();
     })();
 
   </script>

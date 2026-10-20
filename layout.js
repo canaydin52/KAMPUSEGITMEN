@@ -4,7 +4,9 @@
     ["index.html", "Ana Sayfa"],
     ["egitmenler.html", "Eğitmenler"],
     ["hakkimizda.html", "Hakkımızda"],
-    ["iletisim.html", "İletişim"]
+    ["iletisim.html", "İletişim"],
+    ["mesajlar.html", "Mesajlar"],
+    ["giris.html", "Giriş / Hesabım"]
   ];
   const file = location.pathname.split("/").pop() || "index.html";
   const page = file === "egitmen-detay.html" ? "egitmenler.html" : file; // profil sayfasında "Eğitmenler" menüsü aktif görünür

@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eğitmenler | Kampüs Eğitmen</title>
-  <meta name="description" content="İlini seç, üniversiteli eğitmenleri üniversite, bölüm ve uzmanlık alanına göre incele." />
   <meta name="theme-color" content="#0a1b33" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,56 +16,103 @@
   <div id="site-header"></div>
 
   <main>
-    <section class="hero bg-navy-900 text-white">
+    <section class="hero city-sil bg-navy-900 text-white" data-city="istanbul">
       <div class="mx-auto max-w-6xl px-5 py-14 md:py-20">
         <h1 class="font-display text-4xl font-extrabold tracking-tight md:text-5xl">Eğitmenlerimiz</h1>
-        <p class="mt-4 max-w-2xl text-lg text-navy-100/90">Pilot illerimizden birini seç, istersen ders ya da üniversite adıyla ara. Beğendiğin eğitmene doğrudan WhatsApp'tan yaz.</p>
+        <p class="mt-4 max-w-2xl text-lg text-navy-100/90">Şehrini seç; ders ve ücret aralığına göre filtrele. Görüşmek istediğin eğitmene talep gönder, onaylanınca site içinden yazış.</p>
       </div>
     </section>
 
-    <section class="mx-auto max-w-6xl px-5 py-12 md:py-16">
-      <div id="city-chips" class="flex flex-wrap gap-2" role="group" aria-label="Pilot iller"></div>
-      <div class="mt-5 max-w-md">
-        <label for="search" class="label">Ders, üniversite veya isim</label>
-        <input id="search" type="search" placeholder="Örn. Matematik, ODTÜ" class="field" />
+    <section class="city-sil on-light" data-city="istanbul">
+      <div class="mx-auto max-w-6xl px-5 py-12 md:py-16">
+        <div id="city-chips" class="flex flex-wrap gap-2" role="group" aria-label="Pilot iller"></div>
+        <div class="mt-5 grid max-w-3xl gap-4 sm:grid-cols-3">
+          <div><label for="q" class="label">Ders, isim veya üniversite</label><input id="q" type="search" list="dersler" class="field" placeholder="Örn. Matematik" /></div>
+          <div><label for="min" class="label">En düşük ücret (₺)</label><input id="min" type="number" min="0" class="field" /></div>
+          <div><label for="max" class="label">En yüksek ücret (₺)</label><input id="max" type="number" min="0" class="field" /></div>
+        </div>
+        <datalist id="dersler"></datalist>
+        <h2 id="results-title" class="mt-12 font-display text-2xl font-extrabold text-navy-900"></h2>
+        <div id="grid" class="results mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></div>
       </div>
-
-      <h2 id="results-title" class="mt-12 font-display text-2xl font-extrabold text-navy-900"></h2>
-      <div id="tutor-grid" class="results mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></div>
     </section>
+
+    <dialog id="req" class="modal">
+      <form id="rf" class="grid gap-4">
+        <h2 class="font-display text-xl font-extrabold text-navy-900"><span id="who"></span> ile görüşme talebi</h2>
+        <p class="text-sm text-slate-600">Talebin yöneticiye iletilir. Onaylanırsa Mesajlar bölümünde yazışma açılır. Yazışmalar platform güvenliği için denetlenebilir.</p>
+        <div><label for="rmsg" class="label">Ne tür bir ders arıyorsun? (isteğe bağlı)</label><textarea id="rmsg" rows="3" maxlength="500" class="field"></textarea></div>
+        <p id="rerr" class="text-sm text-red-700" role="alert"></p>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="rcancel" class="rounded-full px-5 py-2 font-bold text-slate-600">Vazgeç</button>
+          <button class="rounded-full bg-navy-900 px-5 py-2 font-bold text-white hover:bg-navy-800">Talebi gönder</button>
+        </div>
+      </form>
+    </dialog>
   </main>
 
   <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="veri.js"></script>
   <script src="data.js"></script>
+  <script src="supabase.js"></script>
   <script src="layout.js"></script>
   <script>
-    const params = new URLSearchParams(location.search);
-    let city = ILLER.includes(params.get("il")) ? params.get("il") : ILLER[0];
-    let query = "";
+
+    const P = new URLSearchParams(location.search);
+    let city = ILLER.includes(P.get("il")) ? P.get("il") : ILLER[0], tutors = [], user = null, target = null, timer;
+    $("q").value = P.get("q") || ""; $("min").value = P.get("min") || ""; $("max").value = P.get("max") || "";
+    $("dersler").innerHTML = DERSLER.map((d) => `<option value="${d}">`).join("");
 
     function render() {
-      const all = tutorsByCity(city);
-      const q = trLower(query.trim());
-      const list = q ? all.filter((t) => trLower([t.ad, t.universite, t.bolum, ...t.dersler].join(" ")).includes(q)) : all;
+      const s = trLower($("q").value.trim());
+      const list = s ? tutors.filter((t) => trLower([t.full_name, t.university, t.department, ...(t.subjects || [])].join(" ")).includes(s)) : tutors;
       $("results-title").textContent = `${city} eğitmenleri (${list.length})`;
-      $("tutor-grid").innerHTML = !all.length ? emptyState(city)
-        : !list.length ? '<p class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">Aramana uygun eğitmen bulunamadı. Farklı bir ders veya üniversite adı dene.</p>'
-        : list.map((t) => tutorCard(t)).join("");
+      $("grid").innerHTML = list.map((t) => dbCard(t,
+        `<button data-req="${esc(t.user_id)}" class="rounded-full bg-navy-900 px-4 py-2 text-sm font-bold text-white hover:bg-navy-800">Görüşme İste</button>`)).join("")
+        || '<p class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">Bu filtrelere uyan eğitmen bulunamadı. Filtreleri genişletmeyi dene.</p>';
     }
 
-    function selectCity(c, animate = true) {
+    async function load() {
+      $("grid").innerHTML = '<p class="col-span-full text-slate-500">Yükleniyor…</p>';
+      let q = sb.from("public_tutors").select("*").eq("city", city).order("osym_verified", { ascending: false });
+      if ($("min").value) q = q.gte("hourly_rate", +$("min").value);
+      if ($("max").value) q = q.lte("hourly_rate", +$("max").value);
+      const { data, error } = await q;
+      if (error) { $("grid").innerHTML = '<p class="col-span-full text-red-700">Eğitmenler yüklenemedi. Lütfen daha sonra tekrar dene.</p>'; return; }
+      tutors = data; render();
+    }
+
+    function setCity(c) {
       city = c;
+      document.querySelectorAll(".city-sil").forEach((e) => (e.dataset.city = KEY[c]));
       document.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.city === c)));
-      history.replaceState(null, "", "?il=" + encodeURIComponent(c));
-      render();
-      if (animate) { const g = $("tutor-grid"); g.classList.remove("is-updating"); void g.offsetWidth; g.classList.add("is-updating"); }
+      load();
     }
 
     $("city-chips").innerHTML = ILLER.map((c) => `<button type="button" class="chip" data-city="${c}" aria-pressed="false">${c}</button>`).join("");
-    $("city-chips").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (b) selectCity(b.dataset.city); });
-    $("search").addEventListener("input", (e) => { query = e.target.value; render(); });
-    selectCity(city, false);
+    $("city-chips").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (b) setCity(b.dataset.city); });
+    $("q").addEventListener("input", render);
+    ["min", "max"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(load, 400); }));
+
+    $("grid").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-req]"); if (!b) return;
+      target = tutors.find((t) => t.user_id === b.dataset.req);
+      if (!user) { location.href = "giris.html?next=" + encodeURIComponent("egitmenler.html?il=" + city); return; }
+      if (user.role !== "student") { alert("Görüşme talebi yalnızca öğrenci hesaplarıyla gönderilebilir."); return; }
+      $("who").textContent = target.full_name; $("rerr").textContent = ""; $("rmsg").value = ""; $("req").showModal();
+    });
+    $("rcancel").onclick = () => $("req").close();
+    $("rf").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const { error } = await sb.from("contact_requests").insert({ student_id: user.id, tutor_id: target.user_id, message: $("rmsg").value.trim() || null });
+      if (error) { $("rerr").textContent = error.code === "23505" ? "Bu eğitmen için bekleyen bir talebin zaten var." : "Talep gönderilemedi. Bu eğitmenle zaten aktif bir görüşmen olabilir ya da hesabın kısıtlı."; return; }
+      $("req").close(); alert("Talebin yönetici onayına gönderildi. Onaylanınca Mesajlar bölümünden yazışabilirsin.");
+    });
+
+    me().then((u) => (user = u));
+    setCity(city);
+
   </script>
 </body>
 </html>

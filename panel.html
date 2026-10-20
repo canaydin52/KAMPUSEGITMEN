@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eğitmen Paneli | Kampüs Eğitmen</title>
+  <meta name="theme-color" content="#0a1b33" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="tailwind-config.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased">
+  <div id="site-header"></div>
+
+  <main class="mx-auto max-w-3xl space-y-6 px-5 py-12">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="font-display text-3xl font-extrabold text-navy-900">Eğitmen paneli</h1>
+      <p id="status" class="text-sm"></p>
+    </div>
+    <p class="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-600">Profilin yönetici onayından sonra sitede görünür. Üniversite, bölüm veya sınav başarısını değiştirirsen ÖSYM rozetin kalkar ve profilin yeniden onaya gider.</p>
+
+    <form id="pf" class="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-2">
+      <div><label class="label" for="city">İl</label><select id="city" class="field"></select></div>
+      <div><label class="label" for="rate">Saatlik ücret (₺)</label><input id="rate" type="number" min="0" max="10000" required class="field" /></div>
+      <div><label class="label" for="uni">Üniversite</label><input id="uni" required class="field" maxlength="120" /></div>
+      <div><label class="label" for="dept">Bölüm</label><input id="dept" required class="field" maxlength="120" /></div>
+      <div class="sm:col-span-2"><label class="label" for="rank">Sınav başarısı (örn. YKS Sayısal İlk 5.000)</label><input id="rank" class="field" maxlength="120" /></div>
+      <div class="sm:col-span-2"><label class="label" for="subjects">Verdiğin dersler (virgülle ayır)</label><input id="subjects" required class="field" placeholder="Matematik, Fizik" /></div>
+      <div><label class="label" for="areas">Uygun lokasyonlar (virgülle ayır)</label><input id="areas" class="field" placeholder="Odunpazarı, Online" /></div>
+      <div><label class="label" for="hours">Uygun saatler</label><input id="hours" class="field" maxlength="200" /></div>
+      <div class="sm:col-span-2"><label class="label" for="bio">Hakkında (en fazla 1000 karakter)</label><textarea id="bio" rows="4" maxlength="1000" class="field"></textarea></div>
+      <div class="sm:col-span-2">
+        <button class="rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Kaydet ve onaya gönder</button>
+        <p id="pmsg" class="mt-2 text-sm" role="alert"></p>
+      </div>
+    </form>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-6">
+      <h2 class="font-display text-xl font-extrabold text-navy-900">ÖSYM sonuç belgesi</h2>
+      <p class="mt-2 text-sm text-slate-600">PDF, JPG veya PNG yükle (en fazla 5 MB). Belgeyi yalnızca sen ve yönetici görür; kimseyle paylaşılmaz. Belgedeki <strong>T.C. kimlik numarasını kapatarak</strong> yüklemeni öneririz. Yönetici onaylayınca profilinde "ÖSYM Onaylı Derece" rozeti görünür.</p>
+      <form id="df" class="mt-4 flex flex-wrap items-center gap-3">
+        <input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required class="field max-w-sm" />
+        <button class="rounded-full bg-navy-900 px-5 py-3 font-bold text-white hover:bg-navy-800">Belgeyi yükle</button>
+      </form>
+      <p id="dmsg" class="mt-2 text-sm" role="alert"></p>
+      <ul id="docs" class="mt-4 space-y-2"></ul>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <script src="veri.js"></script>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    let user;
+    const list = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
+    const say = (id, t, ok) => { $(id).className = "mt-2 text-sm " + (ok ? "text-emerald-700" : "text-red-700"); $(id).textContent = t; };
+
+    async function loadProfile() {
+      const { data: t } = await sb.from("tutor_profiles").select("*").eq("user_id", user.id).maybeSingle();
+      if (!t) { $("status").textContent = "Henüz profil oluşturmadın."; return; }
+      $("city").value = t.city; $("rate").value = t.hourly_rate; $("uni").value = t.university; $("dept").value = t.department;
+      $("rank").value = t.rank_text || ""; $("subjects").value = (t.subjects || []).join(", "); $("areas").value = (t.areas || []).join(", ");
+      $("hours").value = t.hours || ""; $("bio").value = t.bio || "";
+      $("status").innerHTML = "Profil durumu: " + statusChip(t.status) + (t.osym_verified ? ' <span class="osym-badge">ÖSYM Onaylı Derece</span>' : "");
+    }
+
+    async function loadDocs() {
+      const { data } = await sb.from("osym_documents").select("*").eq("tutor_id", user.id).order("created_at", { ascending: false });
+      $("docs").innerHTML = (data || []).map((d) => `<li class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm">
+        <span>${fmtDate(d.created_at)}</span>${statusChip(d.status)}${d.admin_note ? `<span class="w-full text-slate-500">Yönetici notu: ${esc(d.admin_note)}</span>` : ""}</li>`).join("")
+        || '<li class="text-sm text-slate-500">Henüz belge yüklemedin.</li>';
+    }
+
+    $("pf").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const row = { user_id: user.id, city: $("city").value, university: $("uni").value.trim(), department: $("dept").value.trim(),
+        rank_text: $("rank").value.trim() || null, subjects: list($("subjects").value), hourly_rate: +$("rate").value,
+        areas: list($("areas").value), hours: $("hours").value.trim() || null, bio: $("bio").value.trim() || null };
+      const { error } = await sb.from("tutor_profiles").upsert(row, { onConflict: "user_id" });
+      if (error) return say("pmsg", "Kaydedilemedi: " + error.message, false);
+      say("pmsg", "Kaydedildi. Profilin yönetici onayına gönderildi.", true); loadProfile();
+    });
+
+    $("df").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = $("file").files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) return say("dmsg", "Dosya en fazla 5 MB olabilir.", false);
+      const path = `${user.id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const up = await sb.storage.from("osym").upload(path, f, { contentType: f.type });
+      if (up.error) return say("dmsg", "Yüklenemedi: " + up.error.message, false);
+      const ins = await sb.from("osym_documents").insert({ tutor_id: user.id, file_path: path });
+      if (ins.error) return say("dmsg", "Kaydedilemedi: " + ins.error.message, false);
+      say("dmsg", "Belge yüklendi, yönetici onayı bekleniyor.", true); $("df").reset(); loadDocs();
+    });
+
+    (async () => {
+      user = await guard(["tutor"]); if (!user) return;
+      $("city").innerHTML = ILLER.map((c) => `<option>${c}</option>`).join("");
+      loadProfile(); loadDocs();
+    })();
+
+  </script>
+</body>
+</html>

@@ -24,10 +24,13 @@
             Kampüs Eğitmen<br /><span class="text-navy-100">Üniversiteden Birebir Özel Ders</span>
           </h1>
           <p class="mt-6 max-w-xl text-lg leading-relaxed text-navy-100/90">İstanbul, Ankara, İzmir, Bursa, Eskişehir ve Antalya'daki üniversite öğrencileri ve mezunlarıyla çalış. İlini seç, eğitmeni bul, WhatsApp'tan yaz.</p>
-          <form id="quick-search" class="mt-8 flex max-w-lg flex-col gap-3 sm:flex-row">
-            <label for="quick-city" class="sr-only">İl seç</label>
-            <select id="quick-city" class="w-full rounded-full border-0 bg-white px-5 py-3 font-bold text-navy-900"></select>
-            <button type="submit" class="shrink-0 rounded-full bg-wa px-6 py-3 font-bold text-navy-950 hover:brightness-110">Eğitmenleri gör</button>
+          <form id="quick-search" class="mt-8 grid max-w-2xl gap-3 rounded-2xl bg-white p-4 text-slate-700 shadow-2xl shadow-black/30 sm:grid-cols-2">
+            <div><label for="qs-city" class="label">İl</label><select id="qs-city" class="field"></select></div>
+            <div><label for="qs-q" class="label">Ders</label><input id="qs-q" class="field" list="dersler" placeholder="Örn. Matematik" /></div>
+            <div><label for="qs-min" class="label">En düşük ücret (₺)</label><input id="qs-min" type="number" min="0" class="field" /></div>
+            <div><label for="qs-max" class="label">En yüksek ücret (₺)</label><input id="qs-max" type="number" min="0" class="field" /></div>
+            <button type="submit" class="rounded-full bg-wa px-6 py-3 font-bold text-navy-950 hover:brightness-110 sm:col-span-2">Eğitmen ara</button>
+            <datalist id="dersler"></datalist>
           </form>
         </div>
         <a href="egitmen-detay.html?id=elif-yildiz" class="hero-card mx-auto block w-full max-w-sm rounded-2xl bg-white p-5 text-slate-700 shadow-2xl shadow-black/30">
@@ -77,18 +80,27 @@
   </main>
 
   <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="veri.js"></script>
   <script src="data.js"></script>
+  <script src="supabase.js"></script>
   <script src="layout.js"></script>
   <script>
-    const sel = $("quick-city");
-    sel.innerHTML = ILLER.map((c) => `<option>${c}</option>`).join("");
-    document.getElementById("quick-search").addEventListener("submit", (e) => {
+    $("qs-city").innerHTML = ILLER.map((c) => `<option>${c}</option>`).join("");
+    $("dersler").innerHTML = DERSLER.map((d) => `<option value="${d}">`).join("");
+    $("quick-search").addEventListener("submit", (e) => {
       e.preventDefault();
-      location.href = "egitmenler.html?il=" + encodeURIComponent(sel.value);
+      const p = new URLSearchParams({ il: $("qs-city").value });
+      [["q", "qs-q"], ["min", "qs-min"], ["max", "qs-max"]].forEach(([k, id]) => { if ($(id).value.trim()) p.set(k, $(id).value.trim()); });
+      location.href = "egitmenler.html?" + p;
     });
-    // Her pilot ilden bir eğitmen göster
-    $("featured").innerHTML = ILLER.map((c) => tutorsByCity(c)[0]).filter(Boolean).map(tutorCard).join("");
+
+    // Öne çıkan eğitmenler: onaylı ve ÖSYM rozetli olanlar önde
+    sb.from("public_tutors").select("*").order("osym_verified", { ascending: false }).limit(6).then(({ data, error }) => {
+      $("featured").innerHTML = error ? '<p class="col-span-full text-slate-500">Eğitmenler şu an yüklenemiyor.</p>'
+        : (data || []).map((t) => dbCard(t, `<a href="egitmenler.html?il=${encodeURIComponent(t.city)}" class="rounded-full bg-navy-900 px-4 py-2 text-sm font-bold text-white hover:bg-navy-800">${esc(t.city)} eğitmenleri</a>`)).join("")
+          || '<p class="col-span-full text-slate-500">Yakında yeni eğitmenler eklenecek.</p>';
+    });
   </script>
 </body>
 </html>

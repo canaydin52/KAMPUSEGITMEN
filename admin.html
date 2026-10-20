@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yönetim Paneli | Kampüs Eğitmen</title>
+  <meta name="theme-color" content="#0a1b33" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="tailwind-config.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased">
+  <div id="site-header"></div>
+
+  <main class="mx-auto max-w-6xl px-5 py-10">
+    <h1 class="font-display text-3xl font-extrabold text-navy-900">Yönetim paneli</h1>
+    <div id="tabs" class="mt-6 flex flex-wrap border-b border-slate-200" role="tablist"></div>
+    <div id="view" class="mt-6"></div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <script src="veri.js"></script>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    const TABS = { apps: "Başvurular", reqs: "Görüşme Talepleri", osym: "ÖSYM Belgeleri", dms: "Mesajlar (Denetim)", users: "Kullanıcılar" };
+    let me_, tab = "apps", appFilter = "pending", openConv = null, userQ = "", cache = {};
+
+    const ck = (r) => { if (r.error) throw r.error; return r.data; };
+    const upd = async (t, col, id, patch) => ck(await sb.from(t).update(patch).eq(col, id));
+    const row = (info, actions) => `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"><div class="min-w-0 text-sm">${info}</div><div class="flex flex-wrap gap-2">${actions || ""}</div></div>`;
+    const btn = (act, id, label, cls = "bg-navy-900 text-white", val = "") => `<button data-act="${act}" data-id="${esc(id)}" data-val="${esc(val)}" class="rounded-full px-4 py-2 text-sm font-bold ${cls}">${label}</button>`;
+    const GHOST = "border border-slate-300 bg-white text-navy-900", GRAY = "bg-slate-200 text-slate-800";
+    const none = '<p class="text-slate-500">Kayıt yok.</p>';
+    const CONV_SEL = "*, student:profiles!conversations_student_fk(full_name), tutor:profiles!conversations_tutor_fk(full_name)";
+
+    const VIEWS = {
+      async apps() {
+        let q = sb.from("tutor_profiles").select("*, p:profiles(full_name)").order("updated_at", { ascending: false });
+        if (appFilter !== "all") q = q.eq("status", appFilter);
+        const list = ck(await q); cache = Object.fromEntries(list.map((t) => [t.user_id, t]));
+        const opts = [["pending", "Bekleyenler"], ["approved", "Onaylılar"], ["rejected", "Reddedilenler"], ["all", "Tümü"]].map(([v, l]) => `<option value="${v}" ${v === appFilter ? "selected" : ""}>${l}</option>`).join("");
+        return `<select data-filter="app" class="field mb-4 max-w-xs">${opts}</select><div class="space-y-3">` + (list.map((t) => row(
+          `<p class="font-bold text-navy-900">${esc(t.p?.full_name)} ${statusChip(t.status)} ${t.osym_verified ? '<span class="osym-badge">ÖSYM</span>' : ""}</p>
+           <p>${esc(t.city)} · ${esc(t.university)} – ${esc(t.department)}</p>
+           <p class="text-slate-500">${esc(t.rank_text || "Derece belirtilmemiş")} · ${esc(t.hourly_rate)} ₺ · ${esc((t.subjects || []).join(", "))}</p>`,
+          btn("app_ok", t.user_id, "Onayla") + btn("app_no", t.user_id, "Reddet", GRAY) + btn("app_edit", t.user_id, "Düzenle", GHOST))).join("") || none) + "</div>";
+      },
+
+      async reqs() {
+        const list = ck(await sb.from("contact_requests").select("*, student:profiles!contact_requests_student_fk(full_name), tutor:profiles!contact_requests_tutor_fk(full_name)").order("created_at", { ascending: false }));
+        list.sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1));
+        return '<div class="space-y-3">' + (list.map((r) => row(
+          `<p class="font-bold text-navy-900">${esc(r.student?.full_name)} → ${esc(r.tutor?.full_name)} ${statusChip(r.status)}</p>
+           <p class="text-slate-500">${fmtDate(r.created_at)}</p>${r.message ? `<p class="mt-1">${esc(r.message)}</p>` : ""}${r.admin_note ? `<p class="text-slate-500">Not: ${esc(r.admin_note)}</p>` : ""}`,
+          r.status === "pending" ? btn("req_ok", r.id, "Onayla ve iletişimi aç") + btn("req_no", r.id, "Reddet", GRAY) : "")).join("") || none) + "</div>";
+      },
+
+      async osym() {
+        const docs = ck(await sb.from("osym_documents").select("*, t:profiles(full_name)").order("created_at", { ascending: false }));
+        const ids = [...new Set(docs.map((d) => d.tutor_id))];
+        const tps = ids.length ? ck(await sb.from("tutor_profiles").select("user_id,rank_text,university,department").in("user_id", ids)) : [];
+        const m = Object.fromEntries(tps.map((t) => [t.user_id, t]));
+        docs.sort((a, b) => (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1));
+        return '<p class="mb-4 rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-600">Belgeyi açıp eğitmenin beyan ettiği dereceyle karşılaştır. Onay, profilde "ÖSYM Onaylı Derece" rozetini açar.</p><div class="space-y-3">' + (docs.map((d) => row(
+          `<p class="font-bold text-navy-900">${esc(d.t?.full_name)} ${statusChip(d.status)}</p>
+           <p>Beyan: <strong>${esc(m[d.tutor_id]?.rank_text || "—")}</strong> · ${esc(m[d.tutor_id]?.university)} – ${esc(m[d.tutor_id]?.department)}</p>
+           <p class="text-slate-500">${fmtDate(d.created_at)}</p>`,
+          btn("doc_open", d.file_path, "Belgeyi aç", GHOST) + (d.status === "pending" ? btn("doc_ok", d.id, "Onayla") + btn("doc_no", d.id, "Reddet", GRAY) : ""))).join("") || none) + "</div>";
+      },
+
+      async dms() {
+        if (openConv) {
+          const c = ck(await sb.from("conversations").select(CONV_SEL).eq("id", openConv).single());
+          const msgs = ck(await sb.from("messages").select("*").eq("conversation_id", openConv).order("created_at"));
+          const who = (id) => (id === c.student_id ? c.student : c.tutor)?.full_name;
+          return `<div class="mb-4 flex flex-wrap items-center justify-between gap-3"><p class="font-bold text-navy-900">${esc(c.student?.full_name)} ↔ ${esc(c.tutor?.full_name)} ${c.active ? "" : "(kapalı)"}</p>
+            <div class="flex gap-2">${btn("dm_back", "", "Listeye dön", GHOST)}${btn("dm_toggle", c.id, c.active ? "Yazışmayı kapat" : "Yazışmayı aç", GRAY, String(c.active))}</div></div>
+            <p class="mb-3 text-xs text-slate-500">Bu alan yalnızca güvenlik ve denetim amacıyla kullanılmalıdır (KVKK).</p>
+            <div class="space-y-2">` + (msgs.map((m) => row(`<p class="text-xs text-slate-500">${esc(who(m.sender_id))} · ${fmtDate(m.created_at)}</p><p class="whitespace-pre-wrap break-words">${esc(m.body)}</p>`, btn("msg_del", m.id, "Sil", GRAY))).join("") || none) + "</div>";
+        }
+        const list = ck(await sb.from("conversations").select(CONV_SEL).order("created_at", { ascending: false }));
+        return '<div class="space-y-3">' + (list.map((c) => row(`<p class="font-bold text-navy-900">${esc(c.student?.full_name)} ↔ ${esc(c.tutor?.full_name)} ${c.active ? "" : "(kapalı)"}</p><p class="text-slate-500">${fmtDate(c.created_at)}</p>`, btn("dm_open", c.id, "Oku ve denetle"))).join("") || none) + "</div>";
+      },
+
+      async users() {
+        let q = sb.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
+        if (userQ) q = q.ilike("full_name", `%${userQ.replace(/[%,]/g, "")}%`);
+        const list = ck(await q);
+        const R = { student: "Öğrenci", tutor: "Eğitmen", admin: "Yönetici" };
+        return `<input data-usearch value="${esc(userQ)}" class="field mb-4 max-w-xs" placeholder="İsimle ara, Enter'a bas" /><div class="space-y-3">` + (list.map((u) => row(
+          `<p class="font-bold text-navy-900">${esc(u.full_name || "(isimsiz)")} <span class="text-xs font-normal text-slate-500">${R[u.role]}</span> ${u.is_banned ? '<span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700">Banlı</span>' : ""}</p><p class="text-slate-500">${fmtDate(u.created_at)}</p>`,
+          u.role === "admin" ? "" : u.is_banned ? btn("unban", u.id, "Banı kaldır", GHOST) : btn("ban", u.id, "Banla", "bg-red-600 text-white"))).join("") || none) + "</div>";
+      },
+    };
+
+    const ACT = {
+      app_ok: (id) => upd("tutor_profiles", "user_id", id, { status: "approved" }),
+      app_no: (id) => upd("tutor_profiles", "user_id", id, { status: "rejected" }),
+      async app_edit(id) {
+        const t = cache[id];
+        const rank = prompt("Sınav başarısı", t.rank_text || ""); if (rank === null) return;
+        const rate = prompt("Saatlik ücret (₺)", t.hourly_rate); if (rate === null) return;
+        const uni = prompt("Üniversite", t.university); if (uni === null) return;
+        const dep = prompt("Bölüm", t.department); if (dep === null) return;
+        await upd("tutor_profiles", "user_id", id, { rank_text: rank || null, hourly_rate: +rate, university: uni, department: dep });
+      },
+      async req_ok(id) { ck(await sb.rpc("admin_decide_request", { p_id: id, p_approve: true, p_note: null })); },
+      async req_no(id) { const n = prompt("Red notu (isteğe bağlı)"); if (n === null) return; ck(await sb.rpc("admin_decide_request", { p_id: id, p_approve: false, p_note: n || null })); },
+      async doc_open(path) {
+        const w = window.open("about:blank", "_blank");          // tıklamayla aynı anda açılmalı (açılır pencere engeli)
+        const { data, error } = await sb.storage.from("osym").createSignedUrl(path, 120);
+        if (error) { if (w) w.close(); throw error; }
+        if (w) w.location = data.signedUrl;
+      },
+      async doc_ok(id) { ck(await sb.rpc("admin_decide_osym", { p_id: id, p_approve: true, p_note: null })); },
+      async doc_no(id) { const n = prompt("Red nedeni (eğitmen görecek)"); if (n === null) return; ck(await sb.rpc("admin_decide_osym", { p_id: id, p_approve: false, p_note: n || null })); },
+      dm_open: (id) => { openConv = id; },
+      dm_back: () => { openConv = null; },
+      dm_toggle: (id, val) => upd("conversations", "id", id, { active: val !== "true" }),
+      async msg_del(id) { ck(await sb.from("messages").delete().eq("id", id)); },
+      ban: (id) => upd("profiles", "id", id, { is_banned: true }),
+      unban: (id) => upd("profiles", "id", id, { is_banned: false }),
+    };
+
+    async function render() {
+      $("tabs").innerHTML = Object.entries(TABS).map(([k, l]) => `<button class="tab" data-tab="${k}" aria-selected="${k === tab}">${l}</button>`).join("");
+      $("view").innerHTML = '<p class="text-slate-500">Yükleniyor…</p>';
+      try { $("view").innerHTML = await VIEWS[tab](); } catch (e) { $("view").innerHTML = `<p class="text-red-700">${esc(e.message)}</p>`; }
+    }
+
+    document.addEventListener("click", async (e) => {
+      const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; openConv = null; return render(); }
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const { act, id, val } = b.dataset;
+      if (["ban", "msg_del"].includes(act) && !confirm("Emin misin?")) return;
+      b.disabled = true;
+      try { await ACT[act](id, val); } catch (err) { alert(err.message || err); }
+      render();
+    });
+    document.addEventListener("change", (e) => {
+      if (e.target.matches("[data-filter]")) { appFilter = e.target.value; render(); }
+      if (e.target.matches("[data-usearch]")) { userQ = e.target.value.trim(); render(); }
+    });
+
+    (async () => { me_ = await guard(["admin"]); if (me_) render(); })();
+
+  </script>
+</body>
+</html>

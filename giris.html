@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giriş / Kayıt | Kampüs Eğitmen</title>
+  <meta name="theme-color" content="#0a1b33" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="tailwind-config.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased">
+  <div id="site-header"></div>
+
+  <main class="mx-auto max-w-md px-5 py-14">
+    <div id="account" class="hidden rounded-2xl border border-slate-200 bg-white p-6 text-center">
+      <h1 class="font-display text-2xl font-extrabold text-navy-900">Merhaba, <span id="who"></span></h1>
+      <div id="links" class="mt-5 grid gap-3"></div>
+      <button id="logout" type="button" class="mt-5 font-bold text-slate-500 underline">Çıkış yap</button>
+    </div>
+    <div id="auth" class="rounded-2xl border border-slate-200 bg-white">
+      <div class="flex border-b border-slate-200" role="tablist">
+        <button type="button" id="t-in" class="tab" aria-selected="true">Giriş yap</button>
+        <button type="button" id="t-up" class="tab" aria-selected="false">Kayıt ol</button>
+      </div>
+      <form id="f" class="grid gap-4 p-6">
+        <div id="up-only" class="hidden grid gap-4">
+          <div><label class="label" for="name">Ad soyad</label><input id="name" class="field" autocomplete="name" maxlength="100" /></div>
+          <div><label class="label" for="role">Hesap türü</label>
+            <select id="role" class="field"><option value="student">Öğrenci / Veli</option><option value="tutor">Eğitmen</option></select></div>
+        </div>
+        <div><label class="label" for="email">E-posta</label><input id="email" type="email" required class="field" autocomplete="email" /></div>
+        <div><label class="label" for="pw">Şifre (en az 8 karakter)</label><input id="pw" type="password" minlength="8" required class="field" /></div>
+        <label id="kvkk-wrap" class="hidden flex items-start gap-2 text-sm">
+          <input id="kvkk" type="checkbox" class="mt-1" />
+          <span>Aydınlatma metnini okudum. Platform güvenliği için site içi mesajlaşmaların yönetici tarafından görüntülenebileceğini ve denetlenebileceğini kabul ediyorum.</span>
+        </label>
+        <button id="go" class="rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">Giriş yap</button>
+        <p id="msg" class="text-sm" role="alert"></p>
+      </form>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <script src="veri.js"></script>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    const params = new URLSearchParams(location.search);
+    let mode = "in";
+    const safeNext = (n) => (n && /^[a-z-]+\.html(\?[\w=&%.-]*)?$/.test(n)) ? n : null;
+    const home = (u) => safeNext(params.get("next")) || (u.role === "admin" ? "admin.html" : u.role === "tutor" ? "panel.html" : "egitmenler.html");
+
+    function setMode(m) {
+      mode = m;
+      $("t-in").setAttribute("aria-selected", String(m === "in"));
+      $("t-up").setAttribute("aria-selected", String(m === "up"));
+      $("up-only").classList.toggle("hidden", m === "in");
+      $("kvkk-wrap").classList.toggle("hidden", m === "in");
+      $("name").required = $("kvkk").required = m === "up";
+      $("go").textContent = m === "in" ? "Giriş yap" : "Kayıt ol";
+      $("msg").textContent = "";
+    }
+    $("t-in").onclick = () => setMode("in");
+    $("t-up").onclick = () => setMode("up");
+
+    function showAccount(u) {
+      $("auth").classList.add("hidden"); $("account").classList.remove("hidden");
+      $("who").textContent = u.full_name || u.email;
+      const L = { student: [["egitmenler.html", "Eğitmen bul"], ["mesajlar.html", "Mesajlarım ve taleplerim"]],
+                  tutor: [["panel.html", "Profilim ve belgelerim"], ["mesajlar.html", "Mesajlarım"]],
+                  admin: [["admin.html", "Yönetim paneli"], ["mesajlar.html", "Mesajlar"]] }[u.role] || [];
+      $("links").innerHTML = L.map(([h, t]) => `<a href="${h}" class="rounded-full bg-navy-900 px-6 py-3 font-bold text-white hover:bg-navy-800">${t}</a>`).join("");
+    }
+    $("logout").onclick = async () => { await sb.auth.signOut(); location.href = "giris.html"; };
+
+    (async () => {
+      if (params.get("banned")) { $("msg").className = "text-sm text-red-700"; $("msg").textContent = "Hesabın askıya alınmış. Yardım için bizimle iletişime geç."; }
+      const u = await me(); if (u) showAccount(u);
+    })();
+
+    $("f").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("msg"); msg.className = "text-sm text-slate-600"; msg.textContent = "Lütfen bekle…"; $("go").disabled = true;
+      try {
+        const email = $("email").value.trim(), password = $("pw").value;
+        if (mode === "up") {
+          const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: $("name").value.trim(), role: $("role").value, kvkk: true } } });
+          if (error) throw error;
+          if (!data.session) { msg.textContent = "Kaydın alındı. E-postana gelen doğrulama bağlantısına tıkla, sonra giriş yap."; return; }
+        } else {
+          const { error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+        const u = await me();
+        if (u && u.is_banned) { await sb.auth.signOut(); throw new Error("Hesabın askıya alınmış."); }
+        location.href = home(u);
+      } catch (err) { msg.className = "text-sm text-red-700"; msg.textContent = err.message || "Bir hata oluştu."; }
+      finally { $("go").disabled = false; }
+    });
+    setMode("in");
+
+  </script>
+</body>
+</html>

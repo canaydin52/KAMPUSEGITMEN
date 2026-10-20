@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mesajlar | Kampüs Eğitmen</title>
+  <meta name="theme-color" content="#0a1b33" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="tailwind-config.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased">
+  <div id="site-header"></div>
+
+  <main class="mx-auto max-w-6xl px-5 py-10">
+    <h1 class="font-display text-3xl font-extrabold text-navy-900">Mesajlar</h1>
+    <p class="mt-3 rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-600">Güvenliğiniz için bu yazışmalar platform yöneticisi tarafından görüntülenebilir ve denetlenebilir.</p>
+    <div class="mt-6 grid gap-5 md:grid-cols-[1fr_2fr]">
+      <aside class="space-y-5">
+        <div id="req-box" class="hidden rounded-xl border border-slate-200 bg-white p-4">
+          <h2 class="font-display text-lg font-extrabold text-navy-900">Görüşme taleplerim</h2>
+          <ul id="reqs" class="mt-3 space-y-2 text-sm"></ul>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <h2 class="font-display text-lg font-extrabold text-navy-900">Yazışmalar</h2>
+          <ul id="convs" class="mt-3 space-y-2"></ul>
+        </div>
+      </aside>
+      <section class="flex h-[70vh] flex-col rounded-xl border border-slate-200 bg-white">
+        <div id="thead" class="border-b border-slate-200 px-4 py-3 font-bold text-navy-900">Bir yazışma seç</div>
+        <div id="thread" class="flex-1 space-y-2 overflow-y-auto p-4"></div>
+        <form id="send" class="hidden gap-2 border-t border-slate-200 p-3">
+          <input id="body" class="field" maxlength="2000" placeholder="Mesajını yaz…" autocomplete="off" required />
+          <button class="shrink-0 rounded-full bg-navy-900 px-5 font-bold text-white hover:bg-navy-800">Gönder</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <script src="veri.js"></script>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    let user, convId = null, chan = null; const seen = new Set();
+
+    const bubble = (m) => `<div class="flex ${m.sender_id === user.id ? "justify-end" : ""}"><div class="max-w-[80%] rounded-2xl px-4 py-2 ${m.sender_id === user.id ? "bg-navy-900 text-white" : "bg-slate-100 text-slate-800"}">
+      <p class="whitespace-pre-wrap break-words">${esc(m.body)}</p><p class="mt-1 text-[10px] opacity-60">${fmtDate(m.created_at)}</p></div></div>`;
+
+    function add(m) {
+      if (seen.has(m.id)) return; seen.add(m.id);
+      $("thread").insertAdjacentHTML("beforeend", bubble(m)); $("thread").scrollTop = $("thread").scrollHeight;
+    }
+
+    async function openConv(id, title, active) {
+      convId = id; seen.clear(); $("thead").textContent = title; $("thread").innerHTML = "";
+      const canSend = active && user.role !== "admin"; // yönetici yazışmaları denetim amaçlı okur (admin.html)
+      $("send").classList.toggle("hidden", !canSend); $("send").classList.toggle("flex", canSend);
+      const { data } = await sb.from("messages").select("*").eq("conversation_id", id).order("created_at");
+      (data || []).forEach(add);
+      if (chan) sb.removeChannel(chan);
+      chan = sb.channel("c-" + id).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, (p) => add(p.new)).subscribe();
+    }
+
+    $("convs").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) openConv(b.dataset.id, b.dataset.title, b.dataset.active === "true"); });
+
+    $("send").addEventListener("submit", async (e) => {
+      e.preventDefault(); const body = $("body").value.trim(); if (!body || !convId) return;
+      const { data, error } = await sb.from("messages").insert({ conversation_id: convId, sender_id: user.id, body }).select().single();
+      if (error) { alert("Mesaj gönderilemedi. Yazışma kapatılmış ya da hesabın kısıtlı olabilir."); return; }
+      $("body").value = ""; add(data);
+    });
+
+    (async () => {
+      user = await guard(["student", "tutor", "admin"]); if (!user) return;
+      const { data: convs } = await sb.from("conversations").select("id,active,student:profiles!conversations_student_fk(full_name),tutor:profiles!conversations_tutor_fk(full_name)").order("created_at", { ascending: false });
+      $("convs").innerHTML = (convs || []).map((c) => {
+        const name = user.role === "student" ? c.tutor?.full_name : user.role === "tutor" ? c.student?.full_name : `${c.student?.full_name || "?"} – ${c.tutor?.full_name || "?"}`;
+        return `<li><button data-id="${esc(c.id)}" data-title="${esc(name || "Kullanıcı")}" data-active="${c.active}" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-left font-semibold text-navy-900 hover:bg-slate-50">${esc(name || "Kullanıcı")}${c.active ? "" : ' <span class="text-xs font-normal text-slate-500">(kapalı)</span>'}</button></li>`;
+      }).join("") || '<li class="text-sm text-slate-500">Henüz yazışmanız yok.</li>';
+
+      if (user.role === "student") {
+        const { data: reqs } = await sb.from("contact_requests").select("id,status,created_at,tutor_id").order("created_at", { ascending: false });
+        if (reqs && reqs.length) {
+          const { data: names } = await sb.from("public_tutors").select("user_id,full_name").in("user_id", reqs.map((r) => r.tutor_id));
+          const nm = Object.fromEntries((names || []).map((n) => [n.user_id, n.full_name]));
+          $("req-box").classList.remove("hidden");
+          $("reqs").innerHTML = reqs.map((r) => `<li class="flex items-center justify-between gap-2"><span>${esc(nm[r.tutor_id] || "Eğitmen")}</span>${statusChip(r.status)}</li>`).join("");
+        }
+      }
+    })();
+
+  </script>
+</body>
+</html>

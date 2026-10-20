@@ -62,7 +62,7 @@
     function headHtml(title, tutorId) {
       const t = tutors[tutorId];
       if (!t || user.role === "tutor") return esc(title);
-      return `<div class="flex items-center gap-3">${avatar(t, "h-11 w-11", "text-sm")}
+      return `<div class="flex items-center gap-3">${keAvatar(t, "h-11 w-11", "text-sm")}
         <div class="min-w-0 flex-1">
           <p class="truncate">${esc(title)}</p>
           <ul class="mt-1 flex flex-wrap gap-1 text-[11px] font-semibold">
@@ -105,7 +105,7 @@
       $("convs").innerHTML = (convs || []).map((c) => {
         const name = user.role === "student" ? c.tutor?.full_name : user.role === "tutor" ? c.student?.full_name : `${c.student?.full_name || "?"} – ${c.tutor?.full_name || "?"}`;
         const t = tutors[c.tutor_id], showAv = user.role !== "tutor";
-        const av = showAv ? avatar(t || { full_name: c.tutor?.full_name }, "h-9 w-9", "text-xs") : "";
+        const av = showAv ? keAvatar(t || { full_name: c.tutor?.full_name }, "h-9 w-9", "text-xs") : "";
         return `<li><button data-id="${esc(c.id)}" data-tutor="${esc(c.tutor_id)}" data-title="${esc(name || "Kullanıcı")}" data-active="${c.active}" class="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left font-semibold text-navy-900 hover:bg-slate-50">${av}<span class="min-w-0 truncate">${esc(name || "Kullanıcı")}${c.active ? "" : ' <span class="text-xs font-normal text-slate-500">(kapalı)</span>'}</span></button></li>`;
       }).join("") || '<li class="text-sm text-slate-500">Henüz yazışmanız yok.</li>';
 

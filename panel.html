@@ -89,6 +89,7 @@
   <script src="supabase.js"></script>
   <script src="layout.js"></script>
   <script>
+(function () {
 
     let user, slots = [], picked = new Set();
     const list = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
@@ -98,7 +99,7 @@
 
     // ---------- Fotoğraf ----------
     function previewAvatar() {
-      $("avprev").innerHTML = avatar({ full_name: user.full_name, avatar_url: $("avatar").value.trim() }, "h-24 w-24", "text-3xl");
+      $("avprev").innerHTML = keAvatar({ full_name: user.full_name, avatar_url: $("avatar").value.trim() }, "h-24 w-24", "text-3xl");
     }
     $("avatar").addEventListener("input", previewAvatar);
     $("avfile").addEventListener("change", async () => {
@@ -116,21 +117,21 @@
 
     // ---------- Rozetler ----------
     function renderBadges() {
-      $("badges").innerHTML = Object.entries(BADGES).map(([k, l]) =>
+      $("badges").innerHTML = Object.entries(KE_BADGES).map(([k, l]) =>
         `<label class="cursor-pointer"><input type="checkbox" class="peer sr-only" data-b="${k}" ${picked.has(k) ? "checked" : ""} />
          <span class="inline-block rounded-full border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 peer-checked:border-navy-900 peer-checked:bg-navy-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-navy-700">${l}</span></label>`).join("");
-      $("bcount").textContent = `(${picked.size}/${MAX_BADGES})`;
+      $("bcount").textContent = `(${picked.size}/${KE_MAX_BADGES})`;
     }
     $("badges").addEventListener("change", (e) => {
       const k = e.target.dataset.b; if (!k) return;
-      if (e.target.checked) { if (picked.size >= MAX_BADGES) { e.target.checked = false; return say("pmsg", `En fazla ${MAX_BADGES} rozet seçebilirsin.`, false); } picked.add(k); }
+      if (e.target.checked) { if (picked.size >= KE_MAX_BADGES) { e.target.checked = false; return say("pmsg", `En fazla ${KE_MAX_BADGES} rozet seçebilirsin.`, false); } picked.add(k); }
       else picked.delete(k);
-      $("bcount").textContent = `(${picked.size}/${MAX_BADGES})`;
+      $("bcount").textContent = `(${picked.size}/${KE_MAX_BADGES})`;
     });
 
     // ---------- Müsaitlik ----------
     function renderSlots() {
-      $("avail").innerHTML = GUNLER.map((g, i) => {
+      $("avail").innerHTML = KE_GUNLER.map((g, i) => {
         const d = i + 1, mine = slots.filter((s) => s.day === d).sort((a, b) => a.start.localeCompare(b.start));
         return `<div class="flex flex-wrap items-center gap-2 border-b border-slate-100 py-3">
           <span class="w-24 font-bold text-navy-900">${g}</span>
@@ -168,14 +169,14 @@
       $("city").value = t.city; $("rate").value = t.hourly_rate; $("uni").value = t.university; $("dept").value = t.department;
       $("rank").value = t.rank_text || ""; $("subjects").value = (t.subjects || []).join(", "); $("areas").value = (t.areas || []).join(", ");
       $("hours").value = t.hours || ""; $("bio").value = t.bio || ""; $("avatar").value = t.avatar_url || ""; $("free").checked = !!t.free_intro;
-      picked = new Set((t.badges || []).filter((b) => BADGES[b])); renderBadges(); previewAvatar();
+      picked = new Set((t.badges || []).filter((b) => KE_BADGES[b])); renderBadges(); previewAvatar();
       $("status").innerHTML = "Profil durumu: " + statusChip(t.status) + (t.osym_verified ? ' <span class="osym-badge">ÖSYM Onaylı Derece</span>' : "");
       if (t.status === "approved") { $("viewlink").classList.remove("hidden"); $("viewa").href = "egitmen-detay.html?id=" + encodeURIComponent(user.id); }
     }
 
     async function loadSlots() {
       const { data } = await sb.from("tutor_availability").select("day,start_time,end_time").eq("tutor_id", user.id).order("day").order("start_time");
-      slots = (data || []).map((r) => ({ day: r.day, start: hhmm(r.start_time), end: hhmm(r.end_time) })); renderSlots();
+      slots = (data || []).map((r) => ({ day: r.day, start: keHhmm(r.start_time), end: keHhmm(r.end_time) })); renderSlots();
     }
 
     async function loadDocs() {
@@ -216,6 +217,7 @@
       renderBadges(); previewAvatar(); renderSlots();
       loadProfile(); loadSlots(); loadDocs();
     })();
+})();
 
   </script>
 </body>
